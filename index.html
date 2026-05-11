@@ -118,7 +118,7 @@ canvas{width:100%!important}
   <div class="page active" id="page-analyze">
     <div class="search-wrap">
       <div class="search-row">
-        <input class="search-inp" id="codeInp" type="number" inputmode="numeric" placeholder="銘柄コード（例: 7203）">
+        <input class="search-inp" id="codeInp" type="text" autocapitalize="characters" placeholder="銘柄コード or ティッカー（例: 7203, AAPL）">
         <button class="search-btn" onclick="doAnalyze()">分析</button>
       </div>
     </div>
@@ -128,7 +128,7 @@ canvas{width:100%!important}
   <!-- ウォッチリスト -->
   <div class="page" id="page-watch">
     <div class="wl-row">
-      <input class="wl-inp" id="wlInp" type="number" inputmode="numeric" placeholder="銘柄コードを追加">
+      <input class="wl-inp" id="wlInp" type="text" autocapitalize="characters" placeholder="銘柄コード or ティッカーを追加">
       <button class="wl-add" onclick="wlAdd()">追加</button>
     </div>
     <div class="card" style="margin-top:12px">
@@ -148,7 +148,7 @@ canvas{width:100%!important}
       <select class="sc-sel" id="scM"><option value="5">5(完璧)</option><option value="4">4</option><option value="3" selected>3</option></select>
       <button class="sc-run" onclick="doScreen()">実行</button>
     </div>
-    <div class="card"><div id="screenResult"><div class="empty"><div class="empty-ico">🔍</div><p>条件を設定して実行<br><small>主要約60銘柄をスキャン（2〜4分）</small></p></div></div></div>
+    <div class="card"><div id="screenResult"><div class="empty"><div class="empty-ico">🔍</div><p>条件を設定して「実行」を押すと<br>POをクリアした銘柄を逆引き<br><small>日経225・222銘柄をスキャン（3〜5分）</small></p></div></div></div>
   </div>
 </div>
 
@@ -207,11 +207,22 @@ async function fetchChart(symbol, interval, range) {
 
 async function fetchInfo(symbol) {
   const mods = 'summaryDetail,defaultKeyStatistics,calendarEvents,financialData';
-  const url  = `${YF2}${symbol}?modules=${mods}`;
-  const r = await proxyFetch(url);
-  const j = await r.json();
-  return j.quoteSummary?.result?.[0] || {};
+  const endpoints = [
+    `https://query2.finance.yahoo.com/v11/finance/quoteSummary/${symbol}?modules=${mods}&formatted=false`,
+    `https://query1.finance.yahoo.com/v11/finance/quoteSummary/${symbol}?modules=${mods}&formatted=false`,
+    `${YF2}${symbol}?modules=${mods}`,
+  ];
+  for (const url of endpoints) {
+    try {
+      const r = await proxyFetch(url);
+      const j = await r.json();
+      const res = j.quoteSummary?.result?.[0];
+      if (res) return res;
+    } catch(e) {}
+  }
+  return {};
 }
+function getRaw(x) { return x == null ? null : (typeof x === 'object' ? (x.raw ?? x) : x); }
 
 async function fetchName(symbol) {
   const url = `${YF1}${symbol}?interval=1d&range=5d`;
@@ -278,12 +289,13 @@ function perfectOrder(rows) {
 
 // ── 分析 ─────────────────────────────────────────────────
 async function doAnalyze(code) {
-  code = code || document.getElementById('codeInp').value.trim();
-  if (!code || code.length<4) return;
+  code = (code || document.getElementById('codeInp').value.trim()).toUpperCase();
+  if (!code) return;
   const el = document.getElementById('analyzeResult');
   el.innerHTML = '<div class="loading"><div class="spin"></div><span>データ取得中...</span></div>';
   try {
-    const sym = code+'.T';
+    // 4桁数字 → 東証(.T付加)、それ以外 → 米国株等ティッカーそのまま
+    const sym = /^\d{4,}$/.test(code) ? code+'.T' : code;
     const [daily, weekly, monthly, info, name] = await Promise.all([
       fetchChart(sym,'1d','1y'),
       fetchChart(sym,'1wk','5y'),
@@ -363,7 +375,7 @@ function renderAnalysis(d, el) {
 
   // Weekly pairs detail
   const pd=mk('div','card'); pd.style.marginTop='12px';
-  pd.innerHTML=`<div class="card-header">週足 MAペア</div><div class="pairs-wrap">${pairsHtml(d.w_po)}</div>`; ap(pd);
+  pd.innerHTML<`<div class="card-header">週足 MAペア</div><div class="pairs-wrap">${pairsHtml(d.w_po)}</div>`; ap(pd);
 
   // Chart tabs
   const ctabs=mk('div','chart-tabs');
@@ -375,9 +387,11 @@ function renderAnalysis(d, el) {
   cc.innerHTML=`<div class="card-header">移動平均線チャート</div><div class="ma-legend" id="maLeg"></div><div class="chart-wrap"><canvas id="mainC" height="220"></canvas></div><div class="chart-wrap"><canvas id="rsiC" height="85"></canvas></div><div class="chart-wrap"><canvas id="macdC" height="85"></canvas></div>`; ap(cc);
 
   // Fundamentals
-  const per = d.sd.trailingPE?.raw, pbr=d.sd.priceToBook?.raw;
-  const eps = d.ks.trailingEps?.raw, roe=d.fd.returnOnEquity?.raw;
-  const dy  = d.sd.dividendYield?.raw;
+  const per = getRaw(d.sd.trailingPE) ?? getRaw(d.sd.forwardPE);
+  const pbr = getRaw(d.sd.priceToBook);
+  const eps = getRaw(d.ks.trailingEps);
+  const roe = getRaw(d.fd.returnOnEquity);
+  const dy  = getRaw(d.sd.dividendYield) ?? getRaw(d.sd.trailingAnnualDividendYield);
   const fc=mk('div','card'); fc.style.marginTop='12px';
   fc.innerHTML=`<div class="card-header">ファンダメンタル</div><div class="fund-grid">
     <div class="fund-item"><div class="fund-lbl">PER</div><div class="fund-val">${per?per.toFixed(1)+'倍':'—'}</div></div>
@@ -462,7 +476,7 @@ function drawCharts(d, type) {
     if(type==='daily'){
       mc.parentElement.style.display='block';
       macdInst=new Chart(mc,{type:'bar',data:{labels,datasets:[
-        {label:'MACD',data:d.macd,borderColor:'#007AFF',borderWidth:1.5,type:'line',pointRadius:0,tension:0,fill:false,order:1},
+        {label:'MACD',data:d.macd,oorderColor:'#007AFF',borderWidth:1.5,type:'line',pointRadius:0,tension:0,fill:false,order:1},
         {label:'Signal',data:d.signal,borderColor:'#FF3B30',borderWidth:1.5,type:'line',pointRadius:0,tension:0,fill:false,order:2},
         {label:'Hist',data:d.hist,backgroundColor:d.hist.map(v=>v>=0?'rgba(52,199,89,.5)':'rgba(255,59,48,.5)'),order:3}
       ]},options:{
@@ -477,7 +491,7 @@ function drawCharts(d, type) {
 
 // ── ウォッチリスト ────────────────────────────────────────
 async function quickScore(code) {
-  const sym=code+'.T';
+  const sym = /^\d{4,}$/.test(code) ? code+'.T' : code;
   const [w,m] = await Promise.all([fetchChart(sym,'1wk','5y'), fetchChart(sym,'1mo','15y')]);
   const n = await fetchName(sym).catch(()=>code);
   const wp=perfectOrder(w), mp=perfectOrder(m);
@@ -503,8 +517,8 @@ function renderWL(){
 }
 
 async function wlAdd(){
-  const code=document.getElementById('wlInp').value.trim();
-  if(!code||code.length<4) return;
+  const code=document.getElementById('wlInp').value.trim().toUpperCase();
+  if(!code) return;
   if(watchlist.find(w=>w.code===code)) return;
   watchlist.push({code, name:code});
   saveWL(); renderWL();
@@ -585,7 +599,7 @@ async function doScreen(){
   }
   results.sort((a,b)=>b.ws+b.ms - a.ws-a.ms);
   if(!results.length){
-    el.innerHTML='<div class="empty"><div class="empty-ico">🔍</div><p>条件に合ぁ銘柄なし</p></div>'; return;
+    el.innerHTML='<div class="empty"><div class="empty-ico">🔍</div><p>条件に合う銘柄なし</p></div>'; return;
   }
   el.innerHTML=results.map(r=>`<div class="sc-item" onclick="jumpAnalyze('${r.code}')">
     <div class="sc-code">${r.code}</div>
@@ -612,7 +626,7 @@ function fmtN(v){
   return n>=1000 ? n.toLocaleString('ja-JP',{maximumFractionDigits:0}) : n.toFixed(n>=10?1:2);
 }
 
-document.getElementById('codeInp').addEventListener('keydown',e=>{if(e.key==='Enter') doAnalyze();});
+document.getElementById('codeInp').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();doAnalyze();}});
 document.getElementById('wlInp').addEventListener('keydown',e=>{if(e.key==='Enter') wlAdd();});
 renderWL();
 </script>
