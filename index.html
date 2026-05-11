@@ -148,7 +148,7 @@ canvas{width:100%!important}
       <select class="sc-sel" id="scM"><option value="5">5(完璧)</option><option value="4">4</option><option value="3" selected>3</option></select>
       <button class="sc-run" onclick="doScreen()">実行</button>
     </div>
-    <div class="card"><div id="screenResult"><div class="empty"><div class="empty-ico">🔍</div><p>条件を設定して「実行」を押すと<br>POをクリアした銘柄を逆引き<br><small>日経225・222銘柄をスキャン（3〜5分）</small></p></div></div></div>
+    <div class="card"><div id="screenResult"><div class="empty"><div class="empty-ico">🔍</div><p>条件を設定して「実行」を押すと<br>POをクリアした銘柄を逆引き<br><small>東証プライム主要約310銘柄をスキャン（3〜5分）</small></p></div></div></div>
   </div>
 </div>
 
@@ -206,15 +206,30 @@ async function fetchChart(symbol, interval, range) {
 }
 
 async function fetchInfo(symbol) {
-  const mods = 'summaryDetail,defaultKeyStatistics,calendarEvents,financialData';
-  const endpoints = [
-    `https://query2.finance.yahoo.com/v11/finance/quoteSummary/${symbol}?modules=${mods}&formatted=false`,
-    `https://query1.finance.yahoo.com/v11/finance/quoteSummary/${symbol}?modules=${mods}&formatted=false`,
-    `${YF2}${symbol}?modules=${mods}`,
-  ];
-  for (const url of endpoints) {
+  // v7 quote — no crumb required, proxy-friendly
+  const v7base = `?symbols=${symbol}`;
+  for (const host of ['https://query1.finance.yahoo.com','https://query2.finance.yahoo.com']) {
     try {
-      const r = await proxyFetch(url);
+      const r = await proxyFetch(host + '/v7/finance/quote' + v7base);
+      const j = await r.json();
+      const q = j.quoteResponse?.result?.[0];
+      if (q && (q.trailingPE || q.priceToBook || q.epsTrailingTwelveMonths || q.trailingAnnualDividendYield)) {
+        const ts = q.earningsTimestampStart || q.earningsTimestampEnd || null;
+        return {
+          summaryDetail: { trailingPE: q.trailingPE, forwardPE: q.forwardPE, priceToBook: q.priceToBook,
+                           dividendYield: q.trailingAnnualDividendYield, trailingAnnualDividendYield: q.trailingAnnualDividendYield },
+          defaultKeyStatistics: { trailingEps: q.epsTrailingTwelveMonths },
+          financialData: { returnOnEquity: q.returnOnEquity },
+          calendarEvents: ts ? { earnings: { earningsDate: [{raw: ts}] } } : {}
+        };
+      }
+    } catch(e) {}
+  }
+  // fallback: v11 quoteSummary
+  const mods = 'summaryDetail,defaultKeyStatistics,calendarEvents,financialData';
+  for (const host of ['https://query1.finance.yahoo.com','https://query2.finance.yahoo.com']) {
+    try {
+      const r = await proxyFetch(`${host}/v11/finance/quoteSummary/${symbol}?modules=${mods}&formatted=false`);
       const j = await r.json();
       const res = j.quoteSummary?.result?.[0];
       if (res) return res;
@@ -476,7 +491,7 @@ function drawCharts(d, type) {
     if(type==='daily'){
       mc.parentElement.style.display='block';
       macdInst=new Chart(mc,{type:'bar',data:{labels,datasets:[
-        {label:'MACD',data:d.macd,oorderColor:'#007AFF',borderWidth:1.5,type:'line',pointRadius:0,tension:0,fill:false,order:1},
+        {label:'MACD',data:d.macd,borderColor:'#007AFF',borderWidth:1.5,type:'line',pointRadius:0,tension:0,fill:false,order:1},
         {label:'Signal',data:d.signal,borderColor:'#FF3B30',borderWidth:1.5,type:'line',pointRadius:0,tension:0,fill:false,order:2},
         {label:'Hist',data:d.hist,backgroundColor:d.hist.map(v=>v>=0?'rgba(52,199,89,.5)':'rgba(255,59,48,.5)'),order:3}
       ]},options:{
@@ -551,6 +566,7 @@ function jumpAnalyze(code){
 
 // ── スクリーナー ──────────────────────────────────────────
 const SCREEN_CODES=[
+  // 日経225・主要銘柄
   '1332','1333','1605','1721','1801','1802','1803','1808','1812','1925',
   '1928','1963','2002','2269','2282','2413','2502','2503','2801','2802',
   '2871','2914','3099','3289','3382','3401','3402','3407','3436','3659',
@@ -573,18 +589,56 @@ const SCREEN_CODES=[
   '8802','8804','8830','9001','9005','9007','9008','9009','9020','9021',
   '9022','9062','9064','9101','9104','9107','9202','9301','9432','9433',
   '9434','9501','9502','9503','9531','9532','9602','9613','9681','9735',
-  '9983','9984'
+  '9983','9984',
+  // 東証プライム追加銘柄
+  // 建設・住宅・設備
+  '1720','1820','1833','1893','1911','1921','1934','1944',
+  // 食品・飲料・外食
+  '2875','2897','2579','2702','2751','2784',
+  // 小売・流通
+  '2124','2432','2651','2670','2730','2782','3048','3086','3092','3197','3391','3543',
+  // 商社・卸売
+  '2768','2379',
+  // 不動産
+  '3003','3231','3288','3291',
+  // IT・ネット・SaaS
+  '2371','3697','3765','3808','4385','4443','4478','4480','4483',
+  // 化学・素材
+  '4041','4045','4114','4186','4403',
+  // 医薬品・医療
+  '4324','4508','4516','4521','4527','4536','4544','4549','4554',
+  // 人材・HR・広告
+  '4708','2462',
+  // エネルギー・非鉄金属
+  '5021','5706','5707',
+  // 機械・工作機械
+  '6136','6201','6222','6258','6268','6383',
+  // 電子部品・医療電子・半導体製造
+  '6592','6641','6806','6807','6849','6863','6869','6963','6965',
+  // 自動車部品
+  '7259','7276','7282','7283',
+  // 金融（ゆうちÂ�・SBI・オリックス・証券）
+  '7182','8473','8591','8616',
+  // 地方銀行
+  '8341','8361','8377','8385','8393','8403','8410','8418','8424','8439',
+  // スポーツ・ゲーム・エンタメ
+  '7936','9766',
+  // ITサービス・SI
+  '9719','9749',
 ];
 
 async function doScreen(){
   const minW=+document.getElementById('scW').value;
   const minM=+document.getElementById('scM').value;
   const el=document.getElementById('screenResult');
-  el.innerHTML=`<div class="loading"><div class="spin"></div><span>スキャン中（${SCREEN_CODES.length}銘柄）...</span></div>`;
+  const total=SCREEN_CODES.length;
+  let done=0;
+  const updProg=()=>{ el.innerHTML<`<div class="loading"><div class="spin"></div><span>スキャン中... ${done}/${total}銘柄</span></div>`; };
+  updProg();
   const results=[];
-  // 5件ずつ並列処理
-  for(let i=0;i<SCREEN_CODES.length;i+=5){
-    const batch=SCREEN_CODES.slice(i,i+5);
+  // 10件ずつ並列処理
+  for(let i=0;i<SCREEN_CODES.length;i+=10){
+    const batch=SCREEN_CODES.slice(i,i+10);
     await Promise.allSettled(batch.map(async code=>{
       try{
         const sym=code+'.T';
@@ -595,6 +649,7 @@ async function doScreen(){
           results.push({code,name:n,ws:wp.score,ms:mp.score,price:wp.price});
         }
       }catch(e){}
+      done++; updProg();
     }));
   }
   results.sort((a,b)=>b.ws+b.ms - a.ws-a.ms);
@@ -617,7 +672,7 @@ function switchTab(btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('page-'+btn.dataset.tab).classList.add('active');
-  document.getElementById('navTitle').textContent={analyze:'株式分析',watch:'ウォッチリスト',screen:'スクリーナー'}[btn.dataset.tab];
+  document.getElementById('navTitle').textContent={analyze:'ウォッチリスデ',watch:'ウォッチリスト',screen:'スクリーナー'}[btn.dataset.tab];
 }
 function mk(tag,cls){const e=document.createElement(tag);if(cls)e.className=cls;return e;}
 function fmtN(v){
