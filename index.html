@@ -166,7 +166,22 @@ canvas{width:100%!important}
 
 <script>
 // ── 定数 ──────────────────────────────────────────────────
-const PROXY = 'https://corsproxy.io/?';
+const PROXIES = [
+  'https://corsproxy.io/?',
+  'https://api.allorigins.win/raw?url=',
+  'https://corsproxy.org/?',
+];
+let _pi = 0;
+async function proxyFetch(url) {
+  for (let i = 0; i < PROXIES.length; i++) {
+    const p = PROXIES[(_pi + i) % PROXIES.length];
+    try {
+      const r = await fetch(p + encodeURIComponent(url), {signal: AbortSignal.timeout(8000)});
+      if (r.ok) { _pi = (_pi + i) % PROXIES.length; return r; }
+    } catch(e) {}
+  }
+  throw new Error('通信エラー: 全プロキシ失敗');
+}
 const YF1   = 'https://query1.finance.yahoo.com/v8/finance/chart/';
 const YF2   = 'https://query2.finance.yahoo.com/v10/finance/quoteSummary/';
 const MA_PERIODS = [5,10,20,50,100,200];
@@ -178,7 +193,7 @@ let watchlist = JSON.parse(localStorage.getItem('kab_watch2')||'[]');
 // ── Yahoo Finance データ取得 ─────────────────────────────
 async function fetchChart(symbol, interval, range) {
   const url = `${YF1}${symbol}?interval=${interval}&range=${range}&events=div`;
-  const r = await fetch(PROXY + encodeURIComponent(url));
+  const r = await proxyFetch(url);
   const j = await r.json();
   const res = j.chart?.result?.[0];
   if (!res) throw new Error('データなし');
@@ -193,20 +208,20 @@ async function fetchChart(symbol, interval, range) {
 async function fetchInfo(symbol) {
   const mods = 'summaryDetail,defaultKeyStatistics,calendarEvents,financialData';
   const url  = `${YF2}${symbol}?modules=${mods}`;
-  const r = await fetch(PROXY + encodeURIComponent(url));
+  const r = await proxyFetch(url);
   const j = await r.json();
   return j.quoteSummary?.result?.[0] || {};
 }
 
 async function fetchName(symbol) {
   const url = `${YF1}${symbol}?interval=1d&range=5d`;
-  const r = await fetch(PROXY + encodeURIComponent(url));
+  const r = await proxyFetch(url);
   const j = await r.json();
   const meta = j.chart?.result?.[0]?.meta;
   return meta?.longName || meta?.shortName || symbol;
 }
 
-// ── テクドカル指標 ────────────────────────────────────────
+// ── テクニカル指標 ────────────────────────────────────────
 function calcMA(closes, p) {
   return closes.map((_, i) => {
     if (i < p-1) return null;
@@ -312,11 +327,11 @@ async function doAnalyze(code) {
     if(daysToEarnings!=null && daysToEarnings>=0 && daysToEarnings<=10)
       signals.push({t:'warn',txt:`決算まで ${daysToEarnings}日 — エントリー注意`});
 
-    currentData = {code, name, daily, weekly,d_po, w_po, m_po, rsi, macd, signal, hist};
+    currentData = {code, name, daily, weekly, d_po, w_po, m_po, rsi, macd, signal, hist};
     currentCType = 'daily';
     renderAnalysis({code, name, price:d_po.price, d_po, w_po, m_po, signals, sd, ks, fd, earningsDate, daysToEarnings, daily, weekly, rsi, macd, signal, hist}, el);
   } catch(e) {
-    el.innerHTML = `<div class="empty"><div class="empty-ico">⚠️</div><p>エラー: ${e.message}<br><small>銘柄んードを�{��誝してください</small></p></div>`;
+    el.innerHTML = `<div class="empty"><div class="empty-ico">⚠️</div><p>エラー: ${e.message}<br><small>銘柄コードを確認してください</small></p></div>`;
   }
 }
 
@@ -331,7 +346,7 @@ function renderAnalysis(d, el) {
 
   // Earnings alert
   if(d.daysToEarnings!=null && d.daysToEarnings>=0 && d.daysToEarnings<=14){
-    const ea=mk('div','earn-alert'); ea.innerHTML<`<span class="earn-icon">📅</span><span class="earn-msg">決算まで <strong>${d.daysToEarnings}日</strong>（${d.earningsDate}）</span>`; ap(ea);
+    const ea=mk('div','earn-alert'); ea.innerHTML=`<span class="earn-icon">📅</span><span class="earn-msg">決算まで <strong>${d.daysToEarnings}日</strong>（${d.earningsDate}）</span>`; ap(ea);
   }
 
   // Signals
@@ -344,7 +359,7 @@ function renderAnalysis(d, el) {
 
   // PO cards
   const poc=mk('div','card'); poc.style.marginTop='12px';
-  poc.innerHTML<`<div class="card-header">パーフェクトオーダー（MA5 › MA10 › MA20 › MA50 › MA100 › MA200）</div><div class="po-grid">${poBox('日足',d.d_po)}${poBox('週足',d.w_po)}${poBox('月足',d.m_po)}</div>`; ap(poc);
+  poc.innerHTML=`<div class="card-header">パーフェクトオーダー（MA5 › MA10 › MA20 › MA50 › MA100 › MA200）</div><div class="po-grid">${poBox('日足',d.d_po)}${poBox('週足',d.w_po)}${poBox('月足',d.m_po)}</div>`; ap(poc);
 
   // Weekly pairs detail
   const pd=mk('div','card'); pd.style.marginTop='12px';
@@ -352,19 +367,19 @@ function renderAnalysis(d, el) {
 
   // Chart tabs
   const ctabs=mk('div','chart-tabs');
-  ctabs.innerHTML<`<div class="ct active" data-t="daily" onclick="switchCT(this)">日足</div><div class="ct" data-t="weekly" onclick="switchCT(this)">週足</div>`;
+  ctabs.innerHTML=`<div class="ct active" data-t="daily" onclick="switchCT(this)">日足</div><div class="ct" data-t="weekly" onclick="switchCT(this)">週足</div>`;
   ap(ctabs);
 
   // Chart card
   const cc=mk('div','card'); cc.style.marginTop='8px'; cc.id='chartCard';
-  cc.innerHTML<`<div class="card-header">移動平均線チャート</div><div class="ma-legend" id="maLeg"></div><div class="chart-wrap"><canvas id="mainC" height="220"></canvas></div><div class="chart-wrap"><canvas id="rsiC" height="85"></canvas></div><div class="chart-wrap"><canvas id="macdC" height="85"></canvas></div>`; ap(cc);
+  cc.innerHTML=`<div class="card-header">移動平均線チャート</div><div class="ma-legend" id="maLeg"></div><div class="chart-wrap"><canvas id="mainC" height="220"></canvas></div><div class="chart-wrap"><canvas id="rsiC" height="85"></canvas></div><div class="chart-wrap"><canvas id="macdC" height="85"></canvas></div>`; ap(cc);
 
   // Fundamentals
   const per = d.sd.trailingPE?.raw, pbr=d.sd.priceToBook?.raw;
   const eps = d.ks.trailingEps?.raw, roe=d.fd.returnOnEquity?.raw;
   const dy  = d.sd.dividendYield?.raw;
   const fc=mk('div','card'); fc.style.marginTop='12px';
-  fc.innerHTML<`<div class="card-header">ファンダメンタル</div><div class="fund-grid">
+  fc.innerHTML=`<div class="card-header">ファンダメンタル</div><div class="fund-grid">
     <div class="fund-item"><div class="fund-lbl">PER</div><div class="fund-val">${per?per.toFixed(1)+'倍':'—'}</div></div>
     <div class="fund-item"><div class="fund-lbl">PBR</div><div class="fund-val">${pbr?pbr.toFixed(2)+'倍':'—'}</div></div>
     <div class="fund-item"><div class="fund-lbl">EPS</div><div class="fund-val">${eps?fmtN(eps)+'円':'—'}</div></div>
@@ -522,12 +537,29 @@ function jumpAnalyze(code){
 
 // ── スクリーナー ──────────────────────────────────────────
 const SCREEN_CODES=[
-  '7203','9984','8306','8316','8411','9432','9433','4063','6758','7974',
-  '6954','8035','4519','9983','7267','6861','4502','4503','4568','6367',
-  '7741','8801','6501','7011','5401','3382','8267','6702','9020','9022',
-  '7269','4661','6098','4755','3659','2413','9064','7751','6971','4578',
-  '8058','8031','8053','7733','6762','9613','4307','3086','9104','9101',
-  '1925','7013','5108','3407','4523','4151','6301','6326','7832','8697'
+  '1332','1333','1605','1721','1801','1802','1803','1808','1812','1925',
+  '1928','1963','2002','2269','2282','2413','2502','2503','2801','2802',
+  '2871','2914','3099','3289','3382','3401','3402','3407','3436','3659',
+  '3861','3863','4004','4005','4021','4042','4043','4061','4063','4151',
+  '4183','4188','4208','4307','4452','4502','4503','4506','4507','4519',
+  '4523','4543','4568','4578','4631','4689','4704','4751','4755','4901',
+  '4902','4911','5019','5020','5101','5105','5108','5201','5202','5214',
+  '5232','5233','5301','5332','5333','5401','5406','5411','5541','5631',
+  '5713','5714','5715','5802','5803','5901','6098','6103','6113','6146',
+  '6178','6273','6301','6302','6305','6326','6361','6366','6367','6471',
+  '6472','6473','6501','6503','6504','6506','6532','6594','6645','6674',
+  '6702','6703','6706','6724','6752','6753','6758','6762','6770','6841',
+  '6857','6861','6902','6952','6954','6971','6976','6981','7003','7011',
+  '7012','7013','7186','7201','7202','7203','7205','7211','7261','7267',
+  '7269','7270','7272','7731','7733','7735','7741','7751','7752','7762',
+  '7832','7911','7912','7951','7974','8001','8002','8003','8005','8006',
+  '8007','8015','8031','8035','8053','8056','8058','8060','8233','8252',
+  '8253','8267','8306','8308','8309','8316','8331','8354','8355','8411',
+  '8601','8604','8628','8630','8697','8725','8750','8766','8795','8801',
+  '8802','8804','8830','9001','9005','9007','9008','9009','9020','9021',
+  '9022','9062','9064','9101','9104','9107','9202','9301','9432','9433',
+  '9434','9501','9502','9503','9531','9532','9602','9613','9681','9735',
+  '9983','9984'
 ];
 
 async function doScreen(){
@@ -553,7 +585,7 @@ async function doScreen(){
   }
   results.sort((a,b)=>b.ws+b.ms - a.ws-a.ms);
   if(!results.length){
-    el.innerHTML='<div class="empty"><div class="empty-ico">🔍</div><p>条件に合う銘柄なし</p></div>'; return;
+    el.innerHTML='<div class="empty"><div class="empty-ico">🔍</div><p>条件に合ぁ銘柄なし</p></div>'; return;
   }
   el.innerHTML=results.map(r=>`<div class="sc-item" onclick="jumpAnalyze('${r.code}')">
     <div class="sc-code">${r.code}</div>
