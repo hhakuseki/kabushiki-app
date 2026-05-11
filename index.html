@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>株式分析</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+:root{color-scheme:light;--p:#007AFF;--g:#34C759;--r:#FF3B30;--o:#FF9500;--y:#FFCC00;--pu:#5856D6;--bg:#F2F2F7;--c:#FFF;--t:#000;--t2:#3C3C43;--t3:#6C6C70;--sep:#C6C6C8;--sep2:#E5E5EA;--nh:56px;--tb:60px}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,sans-serif;background:var(--bg);color:var(--t);max-width:430px;margin:0 auto;min-height:100vh}
+.nav{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:var(--nh);background:rgba(255,255,255,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--sep2);display:flex;align-items:center;padding:0 16px;z-index:100;padding-top:env(safe-area-inset-top)}
+.nav h1{font-size:17px;font-weight:600;flex:1;text-align:center}
+.tabs{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:var(--tb);background:rgba(255,255,255,.92);backdrop-filter:blur(20px);border-top:1px solid var(--sep2);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:none;font-size:10px;color:var(--t3);cursor:pointer;padding-top:6px}
+.tab-btn.active{color:var(--p)}
+.tab-btn svg{width:24px;height:24px}
+.content{padding-top:calc(var(--nh) + env(safe-area-inset-top));padding-bottom:calc(var(--tb) + 16px)}
+.page{display:none;padding:0 0 16px}
+.page.active{display:block}
+.card{background:var(--c);border-radius:12px;margin:12px 16px 0;overflow:hidden}
+.card-header{padding:12px 16px 8px;font-size:12px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.5px}
+.search-wrap{padding:12px 16px 0}
+.search-row{display:flex;gap:8px}
+.search-inp{flex:1;height:44px;border:1.5px solid var(--sep);border-radius:10px;padding:0 12px;font-size:16px;background:var(--c);outline:none}
+.search-inp:focus{border-color:var(--p)}
+.search-btn{height:44px;padding:0 18px;background:var(--p);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
+/* Perfect Order */
+.po-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--sep2)}
+.po-box{background:var(--c);padding:12px 8px;text-align:center}
+.po-box .lbl{font-size:11px;color:var(--t3);margin-bottom:4px}
+.po-num{font-size:30px;font-weight:700;line-height:1}
+.po-denom{font-size:13px;color:var(--t3)}
+.po-badge{display:inline-block;margin-top:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.b-perfect{background:#E3F9E5;color:#166534}
+.b-good{background:#DBEAFE;color:#1D4ED8}
+.b-mid{background:#FEF3C7;color:#92400E}
+.b-low{background:#FEE2E2;color:#991B1B}
+/* Pairs */
+.pairs-wrap{padding:4px 16px 12px}
+.pair-row{display:flex;align-items:center;padding:6px 0;border-bottom:1px solid var(--sep2)}
+.pair-row:last-child{border:none}
+.pair-lbl{font-size:13px;font-weight:500;flex:1}
+.pair-vals{font-size:11px;color:var(--t3);margin-right:8px}
+.pair-icon{font-size:15px;width:22px;text-align:center}
+/* Chart */
+.chart-tabs{display:flex;margin:8px 16px 0;border-radius:8px;background:var(--sep2);padding:2px}
+.ct{flex:1;padding:5px;text-align:center;font-size:12px;font-weight:600;border-radius:6px;cursor:pointer;color:var(--t3)}
+.ct.active{background:var(--c);color:var(--t);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.chart-wrap{padding:0 8px 6px}
+canvas{width:100%!important}
+.ma-legend{display:flex;flex-wrap:wrap;gap:4px 10px;padding:6px 16px 6px}
+.ma-li{display:flex;align-items:center;gap:4px;font-size:11px}
+.ma-dot{width:12px;height:3px;border-radius:2px}
+/* Stock hero */
+.hero{padding:14px 16px 10px;display:flex;align-items:flex-start;gap:8px}
+.hero-info{flex:1}
+.hero-name{font-size:18px;font-weight:700;line-height:1.2}
+.hero-code{font-size:13px;color:var(--t3);margin-top:2px}
+.hero-price{text-align:right}
+.hero-priceval{font-size:26px;font-weight:700}
+.hero-yen{font-size:13px;color:var(--t3)}
+/* Signals */
+.sig-list{padding:6px 16px 12px}
+.sig-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--sep2)}
+.sig-item:last-child{border:none}
+.sig-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sd-bull{background:var(--g)}.sd-bear{background:var(--r)}.sd-warn{background:var(--o)}
+.sig-txt{font-size:14px}
+/* Fundamentals */
+.fund-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--sep2)}
+.fund-item{background:var(--c);padding:12px 16px}
+.fund-lbl{font-size:11px;color:var(--t3);margin-bottom:2px}
+.fund-val{font-size:17px;font-weight:600}
+.earn-alert{margin:12px 16px 0;background:#FFF7ED;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;border:1px solid #FED7AA}
+.earn-icon{font-size:22px}
+.earn-msg{font-size:14px;font-weight:500;color:#92400E}
+/* Watchlist */
+.wl-row{display:flex;gap:8px;padding:12px 16px 0}
+.wl-inp{flex:1;height:40px;border:1.5px solid var(--sep);border-radius:10px;padding:0 12px;font-size:15px;background:var(--c);outline:none}
+.wl-inp:focus{border-color:var(--p)}
+.wl-add{height:40px;padding:0 14px;background:var(--p);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer}
+.wl-item{display:flex;align-items:center;padding:11px 16px;border-bottom:1px solid var(--sep2)}
+.wl-item:last-child{border:none}
+.wl-code{font-size:15px;font-weight:700;width:52px}
+.wl-name{font-size:13px;color:var(--t3);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wl-scores{display:flex;gap:5px;align-items:center}
+.score-chip{padding:2px 7px;border-radius:6px;font-size:12px;font-weight:700}
+.wl-del{color:var(--r);font-size:22px;padding:0 2px;background:none;border:none;cursor:pointer;line-height:1}
+.wl-go{height:30px;padding:0 10px;background:var(--sep2);border:none;border-radius:7px;font-size:12px;color:var(--p);font-weight:600;cursor:pointer}
+.s5{background:#D1FAE5;color:#065F46}.s4{background:#DBEAFE;color:#1E40AF}
+.s3{background:#FEF3C7;color:#92400E}.s2,.s1,.s0{background:#FEE2E2;color:#991B1B}
+/* Spinner / Empty */
+.spin{display:inline-block;width:20px;height:20px;border:3px solid var(--sep2);border-top-color:var(--p);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.loading{padding:40px;text-align:center;color:var(--t3);display:flex;flex-direction:column;align-items:center;gap:12px}
+.empty{padding:48px 24px;text-align:center;color:var(--t3)}
+.empty-ico{font-size:46px;margin-bottom:10px}
+.empty p{font-size:15px;line-height:1.5}
+/* Screen */
+.sc-ctrl{padding:12px 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sc-lbl{font-size:13px;color:var(--t3);white-space:nowrap}
+.sc-sel{height:36px;padding:0 8px;border:1.5px solid var(--sep);border-radius:8px;font-size:13px;background:var(--c)}
+.sc-run{height:36px;padding:0 16px;background:var(--p);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-left:auto}
+.sc-item{display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid var(--sep2);cursor:pointer}
+.sc-item:active{background:var(--sep2)}
+.sc-code{font-size:14px;font-weight:700;width:54px}
+.sc-name{font-size:13px;color:var(--t3);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="nav"><h1 id="navTitle">株式分析</h1></div>
+<div class="content">
+
+  <!-- 分析 -->
+  <div class="page active" id="page-analyze">
+    <div class="search-wrap">
+      <div class="search-row">
+        <input class="search-inp" id="codeInp" type="number" inputmode="numeric" placeholder="銘柄コード（例: 7203）">
+        <button class="search-btn" onclick="doAnalyze()">分析</button>
+      </div>
+    </div>
+    <div id="analyzeResult"></div>
+  </div>
+
+  <!-- ウォッチリスト -->
+  <div class="page" id="page-watch">
+    <div class="wl-row">
+      <input class="wl-inp" id="wlInp" type="number" inputmode="numeric" placeholder="銘柄コードを追加">
+      <button class="wl-add" onclick="wlAdd()">追加</button>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div id="wlList"></div>
+    </div>
+    <div style="padding:12px 16px 0">
+      <button class="search-btn" style="width:100%;background:var(--t2)" onclick="wlRefreshAll()">📊 全銘柄スコアを更新</button>
+    </div>
+  </div>
+
+  <!-- スクリーナー -->
+  <div class="page" id="page-screen">
+    <div class="sc-ctrl">
+      <span class="sc-lbl">週足≥</span>
+      <select class="sc-sel" id="scW"><option value="5">5(完璧)</option><option value="4" selected>4</option><option value="3">3</option></select>
+      <span class="sc-lbl">月足≥</span>
+      <select class="sc-sel" id="scM"><option value="5">5(完璧)</option><option value="4">4</option><option value="3" selected>3</option></select>
+      <button class="sc-run" onclick="doScreen()">実行</button>
+    </div>
+    <div class="card"><div id="screenResult"><div class="empty"><div class="empty-ico">🔍</div><p>条件を設定して実行<br><small>主要約60銘柄をスキャン（2〜4分）</small></p></div></div></div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" data-tab="analyze" onclick="switchTab(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>分析
+  </button>
+  <button class="tab-btn" data-tab="watch" onclick="switchTab(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>ウォッチ
+  </button>
+  <button class="tab-btn" data-tab="screen" onclick="switchTab(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/></svg>スクリーナー
+  </button>
+</div>
+
+<script>
+// ── 定数 ──────────────────────────────────────────────────
+const PROXY = 'https://corsproxy.io/?';
+const YF1   = 'https://query1.finance.yahoo.com/v8/finance/chart/';
+const YF2   = 'https://query2.finance.yahoo.com/v10/finance/quoteSummary/';
+const MA_PERIODS = [5,10,20,50,100,200];
+const MA_COLORS  = {5:'#FF3B30',10:'#FF9500',20:'#D97706',50:'#34C759',100:'#5856D6',200:'#007AFF'};
+let chartInst=null, rsiInst=null, macdInst=null;
+let currentData=null, currentCType='daily';
+let watchlist = JSON.parse(localStorage.getItem('kab_watch2')||'[]');
+
+// ── Yahoo Finance データ取得 ─────────────────────────────
+async function fetchChart(symbol, interval, range) {
+  const url = `${YF1}${symbol}?interval=${interval}&range=${range}&events=div`;
+  const r = await fetch(PROXY + encodeURIComponent(url));
+  const j = await r.json();
+  const res = j.chart?.result?.[0];
+  if (!res) throw new Error('データなし');
+  const ts  = res.timestamp || [];
+  const q   = res.indicators.quote[0];
+  return ts.map((t,i) => ({
+    date: new Date(t*1000).toISOString().slice(0,10),
+    o: q.open?.[i], h: q.high?.[i], l: q.low?.[i], c: q.close?.[i], v: q.volume?.[i]
+  })).filter(d => d.c != null);
+}
+
+async function fetchInfo(symbol) {
+  const mods = 'summaryDetail,defaultKeyStatistics,calendarEvents,financialData';
+  const url  = `${YF2}${symbol}?modules=${mods}`;
+  const r = await fetch(PROXY + encodeURIComponent(url));
+  const j = await r.json();
+  return j.quoteSummary?.result?.[0] || {};
+}
+
+async function fetchName(symbol) {
+  const url = `${YF1}${symbol}?interval=1d&range=5d`;
+  const r = await fetch(PROXY + encodeURIComponent(url));
+  const j = await r.json();
+  const meta = j.chart?.result?.[0]?.meta;
+  return meta?.longName || meta?.shortName || symbol;
+}
+
+// ── テクドカル指標 ────────────────────────────────────────
+function calcMA(closes, p) {
+  return closes.map((_, i) => {
+    if (i < p-1) return null;
+    const s = closes.slice(i-p+1, i+1);
+    return s.reduce((a,b)=>a+(b||0),0)/s.length;
+  });
+}
+function calcRSI(closes, p=14) {
+  const rsi = new Array(closes.length).fill(null);
+  for (let i=p; i<closes.length; i++) {
+    let g=0, l=0;
+    for (let j=i-p+1; j<=i; j++) {
+      const d = closes[j]-closes[j-1];
+      if (d>0) g+=d; else l-=d;
+    }
+    const rs = l===0 ? 100 : g/p/(l/p);
+    rsi[i] = 100 - 100/(1+rs);
+  }
+  return rsi;
+}
+function calcMACD(closes, f=12, s=26, sig=9) {
+  const ema = (arr, span) => {
+    const k=2/(span+1), r=new Array(arr.length).fill(null);
+    let prev=null;
+    for(let i=0;i<arr.length;i++){
+      if(arr[i]==null){r[i]=null;continue;}
+      r[i] = prev==null ? arr[i] : arr[i]*k + prev*(1-k);
+      prev = r[i];
+    }
+    return r;
+  };
+  const ef=ema(closes,f), es=ema(closes,s);
+  const macd=ef.map((v,i)=>v==null||es[i]==null?null:v-es[i]);
+  const signal=ema(macd, sig);
+  const hist=macd.map((v,i)=>v==null||signal[i]==null?null:v-signal[i]);
+  return {macd, signal, hist};
+}
+function perfectOrder(rows) {
+  const closes = rows.map(r=>r.c);
+  const mas = {};
+  MA_PERIODS.forEach(p => { mas[p] = calcMA(closes, p); });
+  const latest = {};
+  MA_PERIODS.forEach(p => { latest[p] = mas[p][mas[p].length-1]; });
+  const pairs = [];
+  for(let i=0;i<MA_PERIODS.length-1;i++){
+    const a=MA_PERIODS[i], b=MA_PERIODS[i+1];
+    const va=latest[a], vb=latest[b];
+    pairs.push({label:`MA${a}>MA${b}`, ok: va!=null&&vb!=null ? va>vb : null, va, vb});
+  }
+  const score = pairs.filter(p=>p.ok===true).length;
+  const avail = pairs.filter(p=>p.ok!==null).length;
+  return { score, avail, is_perfect: score===5&&avail===5, pairs, ma_values: latest, price: closes[closes.length-1], mas };
+}
+
+// ── 分析 ─────────────────────────────────────────────────
+async function doAnalyze(code) {
+  code = code || document.getElementById('codeInp').value.trim();
+  if (!code || code.length<4) return;
+  const el = document.getElementById('analyzeResult');
+  el.innerHTML = '<div class="loading"><div class="spin"></div><span>データ取得中...</span></div>';
+  try {
+    const sym = code+'.T';
+    const [daily, weekly, monthly, info, name] = await Promise.all([
+      fetchChart(sym,'1d','1y'),
+      fetchChart(sym,'1wk','5y'),
+      fetchChart(sym,'1mo','15y'),
+      fetchInfo(sym).catch(()=>({})),
+      fetchName(sym).catch(()=>code)
+    ]);
+    const d_po = perfectOrder(daily);
+    const w_po = perfectOrder(weekly);
+    const m_po = perfectOrder(monthly);
+
+    // RSI / MACD on daily
+    const closes = daily.map(r=>r.c);
+    const rsi = calcRSI(closes);
+    const {macd,signal,hist} = calcMACD(closes);
+
+    // Fundamentals
+    const sd = info.summaryDetail || {};
+    const ks = info.defaultKeyStatistics || {};
+    const fd = info.financialData || {};
+    const cal= info.calendarEvents || {};
+    let earningsDate = null, daysToEarnings = null;
+    try {
+      const ed = cal.earnings?.earningsDate?.[0]?.raw;
+      if (ed) {
+        earningsDate = new Date(ed*1000).toISOString().slice(0,10);
+        daysToEarnings = Math.round((ed*1000 - Date.now())/86400000);
+      }
+    } catch(e){}
+
+    // Signals
+    const signals=[];
+    const rsiLast = rsi[rsi.length-1];
+    const macdLast = macd[macd.length-1], sigLast = signal[signal.length-1];
+    if(w_po.score>=4) signals.push({t:'bull',txt:`週足 ${w_po.score}/5ペア 上昇基調`});
+    if(m_po.score>=4) signals.push({t:'bull',txt:`月足 ${m_po.score}/5ペア 上昇基調`});
+    if(rsiLast && rsiLast<35) signals.push({t:'bull',txt:`RSI ${rsiLast.toFixed(0)} — 売られすぎ`});
+    if(rsiLast && rsiLast>70) signals.push({t:'bear',txt:`RSI ${rsiLast.toFixed(0)} — 買われすぎ`});
+    if(macdLast && sigLast) signals.push(macdLast>sigLast
+      ? {t:'bull',txt:'MACD シグナル上抜け'} : {t:'bear',txt:'MACD シグナル下抜け'});
+    if(daysToEarnings!=null && daysToEarnings>=0 && daysToEarnings<=10)
+      signals.push({t:'warn',txt:`決算まで ${daysToEarnings}日 — エントリー注意`});
+
+    currentData = {code, name, daily, weekly,d_po, w_po, m_po, rsi, macd, signal, hist};
+    currentCType = 'daily';
+    renderAnalysis({code, name, price:d_po.price, d_po, w_po, m_po, signals, sd, ks, fd, earningsDate, daysToEarnings, daily, weekly, rsi, macd, signal, hist}, el);
+  } catch(e) {
+    el.innerHTML = `<div class="empty"><div class="empty-ico">⚠️</div><p>エラー: ${e.message}<br><small>銘柄んードを�{��誝してください</small></p></div>`;
+  }
+}
+
+function renderAnalysis(d, el) {
+  el.innerHTML='';
+  const ap = v => el.appendChild(v);
+
+  // Hero
+  const hero = mk('div','card');
+  hero.innerHTML = `<div class="hero"><div class="hero-info"><div class="hero-name">${d.name}</div><div class="hero-code">${d.code}</div></div><div class="hero-price"><div class="hero-priceval">${fmtN(d.price)}</div><div class="hero-yen">円</div></div></div>`;
+  ap(hero);
+
+  // Earnings alert
+  if(d.daysToEarnings!=null && d.daysToEarnings>=0 && d.daysToEarnings<=14){
+    const ea=mk('div','earn-alert'); ea.innerHTML<`<span class="earn-icon">📅</span><span class="earn-msg">決算まで <strong>${d.daysToEarnings}日</strong>（${d.earningsDate}）</span>`; ap(ea);
+  }
+
+  // Signals
+  if(d.signals.length>0){
+    const sc=mk('div','card'); sc.style.marginTop='12px';
+    sc.innerHTML=`<div class="card-header">シグナル</div><div class="sig-list">${
+      d.signals.map(s=>`<div class="sig-item"><div class="sig-dot sd-${s.t}"></div><div class="sig-txt">${s.txt}</div></div>`).join('')
+    }</div>`; ap(sc);
+  }
+
+  // PO cards
+  const poc=mk('div','card'); poc.style.marginTop='12px';
+  poc.innerHTML<`<div class="card-header">パーフェクトオーダー（MA5 › MA10 › MA20 › MA50 › MA100 › MA200）</div><div class="po-grid">${poBox('日足',d.d_po)}${poBox('週足',d.w_po)}${poBox('月足',d.m_po)}</div>`; ap(poc);
+
+  // Weekly pairs detail
+  const pd=mk('div','card'); pd.style.marginTop='12px';
+  pd.innerHTML=`<div class="card-header">週足 MAペア</div><div class="pairs-wrap">${pairsHtml(d.w_po)}</div>`; ap(pd);
+
+  // Chart tabs
+  const ctabs=mk('div','chart-tabs');
+  ctabs.innerHTML<`<div class="ct active" data-t="daily" onclick="switchCT(this)">日足</div><div class="ct" data-t="weekly" onclick="switchCT(this)">週足</div>`;
+  ap(ctabs);
+
+  // Chart card
+  const cc=mk('div','card'); cc.style.marginTop='8px'; cc.id='chartCard';
+  cc.innerHTML<`<div class="card-header">移動平均線チャート</div><div class="ma-legend" id="maLeg"></div><div class="chart-wrap"><canvas id="mainC" height="220"></canvas></div><div class="chart-wrap"><canvas id="rsiC" height="85"></canvas></div><div class="chart-wrap"><canvas id="macdC" height="85"></canvas></div>`; ap(cc);
+
+  // Fundamentals
+  const per = d.sd.trailingPE?.raw, pbr=d.sd.priceToBook?.raw;
+  const eps = d.ks.trailingEps?.raw, roe=d.fd.returnOnEquity?.raw;
+  const dy  = d.sd.dividendYield?.raw;
+  const fc=mk('div','card'); fc.style.marginTop='12px';
+  fc.innerHTML<`<div class="card-header">ファンダメンタル</div><div class="fund-grid">
+    <div class="fund-item"><div class="fund-lbl">PER</div><div class="fund-val">${per?per.toFixed(1)+'倍':'—'}</div></div>
+    <div class="fund-item"><div class="fund-lbl">PBR</div><div class="fund-val">${pbr?pbr.toFixed(2)+'倍':'—'}</div></div>
+    <div class="fund-item"><div class="fund-lbl">EPS</div><div class="fund-val">${eps?fmtN(eps)+'円':'—'}</div></div>
+    <div class="fund-item"><div class="fund-lbl">ROE</div><div class="fund-val">${roe?(roe*100).toFixed(1)+'%':'—'}</div></div>
+    <div class="fund-item"><div class="fund-lbl">配当利回り</div><div class="fund-val">${dy?(dy*100).toFixed(2)+'%':'—'}</div></div>
+    <div class="fund-item"><div class="fund-lbl">次回決算</div><div class="fund-val" style="font-size:13px">${d.earningsDate||'—'}</div></div>
+  </div>`; ap(fc);
+
+  setTimeout(() => drawCharts(d, 'daily'), 60);
+}
+
+function poBox(lbl, po) {
+  if(!po) return `<div class="po-box"><div class="lbl">${lbl}</div><div class="po-num">—</div></div>`;
+  const s=po.score, cls=s===5?'b-perfect':s>=4?'b-good':s>=3?'b-mid':'b-low';
+  const badge=s===5?'🎯 完璧！':s>=4?'↑ 強気':s>=3?'△ 中立':'↓ 弱気';
+  return `<div class="po-box"><div class="lbl">${lbl}</div><div><span class="po-num">${s}</span><span class="po-denom">/5</span></div><div class="po-badge ${cls}">${badge}</div></div>`;
+}
+
+function pairsHtml(po) {
+  if(!po?.pairs) return '<div style="color:var(--t3);padding:8px">データなし</div>';
+  return po.pairs.map(p=>{
+    const icon = p.ok===null?'—':p.ok?'✅':'❌';
+    return `<div class="pair-row"><div class="pair-lbl">${p.label.replace('MA','MA ')}</div><div class="pair-vals">${p.va?fmtN(p.va):'—'} / ${p.vb?fmtN(p.vb):'—'}</div><div class="pair-icon">${icon}</div></div>`;
+  }).join('');
+}
+
+function switchCT(btn) {
+  document.querySelectorAll('.ct').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  currentCType = btn.dataset.t;
+  if(currentData) drawCharts(currentData, currentCType);
+}
+
+function drawCharts(d, type) {
+  const rows = type==='weekly' ? d.weekly : d.daily;
+  const closes = rows.map(r=>r.c);
+  const labels = rows.map(r=>r.date);
+
+  // MA legend
+  const leg=document.getElementById('maLeg');
+  if(leg) leg.innerHTML = MA_PERIODS.map(p=>`<div class="ma-li"><div class="ma-dot" style="background:${MA_COLORS[p]}"></div>MA${p}</div>`).join('');
+
+  // Main chart
+  if(chartInst) chartInst.destroy();
+  const ctx=document.getElementById('mainC');
+  if(!ctx) return;
+  const ds=[{label:'終値',data:closes,borderColor:'#1C1C1E',borderWidth:1.5,pointRadius:0,tension:0,fill:false,order:10}];
+  MA_PERIODS.forEach(p=>{
+    const ma=calcMA(closes,p);
+    ds.push({label:`MA${p}`,data:ma,borderColor:MA_COLORS[p],borderWidth:1.5,pointRadius:0,tension:0,fill:false});
+  });
+  chartInst=new Chart(ctx,{type:'line',data:{labels,datasets:ds},options:{
+    responsive:true,maintainAspectRatio:false,animation:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false}},
+    scales:{x:{ticks:{maxTicksLimit:6,font:{size:10}},grid:{display:false}},
+            y:{position:'right',ticks:{maxTicksLimit:5,font:{size:10},callback:v=>fmtN(v)},grid:{color:'#F0F0F0'}}}
+  }});
+
+  // RSI
+  if(rsiInst) rsiInst.destroy();
+  const rc=document.getElementById('rsiC');
+  if(rc){
+    if(type==='daily'){
+      rc.parentElement.style.display='block';
+      rsiInst=new Chart(rc,{type:'line',data:{labels,datasets:[{label:'RSI',data:d.rsi,borderColor:'#5856D6',borderWidth:1.5,pointRadius:0,tension:0,fill:false}]},options:{
+        responsive:true,maintainAspectRatio:false,animation:false,
+        plugins:{legend:{display:false}},
+        scales:{x:{ticks:{maxTicksLimit:6,font:{size:9}},grid:{display:false}},
+                y:{position:'right',min:0,max:100,ticks:{stepSize:20,font:{size:9}},
+                   grid:{color:c=>(c.tick.value===30||c.tick.value===70)?'#FF950080':'#F0F0F0'}}}
+      }});
+    } else { rc.parentElement.style.display='none'; }
+  }
+
+  // MACD
+  if(macdInst) macdInst.destroy();
+  const mc=document.getElementById('macdC');
+  if(mc){
+    if(type==='daily'){
+      mc.parentElement.style.display='block';
+      macdInst=new Chart(mc,{type:'bar',data:{labels,datasets:[
+        {label:'MACD',data:d.macd,borderColor:'#007AFF',borderWidth:1.5,type:'line',pointRadius:0,tension:0,fill:false,order:1},
+        {label:'Signal',data:d.signal,borderColor:'#FF3B30',borderWidth:1.5,type:'line',pointRadius:0,tension:0,fill:false,order:2},
+        {label:'Hist',data:d.hist,backgroundColor:d.hist.map(v=>v>=0?'rgba(52,199,89,.5)':'rgba(255,59,48,.5)'),order:3}
+      ]},options:{
+        responsive:true,maintainAspectRatio:false,animation:false,
+        plugins:{legend:{display:false}},
+        scales:{x:{ticks:{maxTicksLimit:6,font:{size:9}},grid:{display:false}},
+                y:{position:'right',ticks:{maxTicksLimit:4,font:{size:9}},grid:{color:'#F0F0F0'}}}
+      }});
+    } else { mc.parentElement.style.display='none'; }
+  }
+}
+
+// ── ウォッチリスト ────────────────────────────────────────
+async function quickScore(code) {
+  const sym=code+'.T';
+  const [w,m] = await Promise.all([fetchChart(sym,'1wk','5y'), fetchChart(sym,'1mo','15y')]);
+  const n = await fetchName(sym).catch(()=>code);
+  const wp=perfectOrder(w), mp=perfectOrder(m);
+  return {code, name:n, weekly_score:wp.score, monthly_score:mp.score, price:wp.price};
+}
+
+function renderWL(){
+  const el=document.getElementById('wlList');
+  if(!watchlist.length){el.innerHTML='<div class="empty"><div class="empty-ico">⭐</div><p>銘柄を追加してください</p></div>';return;}
+  el.innerHTML=watchlist.map((w,i)=>{
+    const ws=w.weekly_score??'?', ms=w.monthly_score??'?';
+    return `<div class="wl-item">
+      <div class="wl-code">${w.code}</div>
+      <div class="wl-name">${w.name||w.code}</div>
+      <div class="wl-scores">
+        <span class="score-chip s${ws}">週${ws}</span>
+        <span class="score-chip s${ms}">月${ms}</span>
+        <button class="wl-go" onclick="jumpAnalyze('${w.code}')">分析</button>
+        <button class="wl-del" onclick="wlDel(${i})">×</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function wlAdd(){
+  const code=document.getElementById('wlInp').value.trim();
+  if(!code||code.length<4) return;
+  if(watchlist.find(w=>w.code===code)) return;
+  watchlist.push({code, name:code});
+  saveWL(); renderWL();
+  document.getElementById('wlInp').value='';
+  // バックグラウンドでスコア取得
+  quickScore(code).then(r=>{
+    const i=watchlist.findIndex(w=>w.code===code);
+    if(i>=0){Object.assign(watchlist[i],r);saveWL();renderWL();}
+  }).catch(()=>{});
+}
+
+function wlDel(i){watchlist.splice(i,1);saveWL();renderWL();}
+function saveWL(){localStorage.setItem('kab_watch2',JSON.stringify(watchlist));}
+
+async function wlRefreshAll(){
+  if(!watchlist.length) return;
+  document.getElementById('wlList').innerHTML='<div class="loading"><div class="spin"></div><span>更新中...</span></div>';
+  await Promise.allSettled(watchlist.map(async(w,i)=>{
+    const r=await quickScore(w.code).catch(()=>null);
+    if(r) Object.assign(watchlist[i],r);
+  }));
+  saveWL(); renderWL();
+}
+
+function jumpAnalyze(code){
+  document.getElementById('codeInp').value=code;
+  document.querySelector('[data-tab="analyze"]').click();
+  doAnalyze(code);
+}
+
+// ── スクリーナー ──────────────────────────────────────────
+const SCREEN_CODES=[
+  '7203','9984','8306','8316','8411','9432','9433','4063','6758','7974',
+  '6954','8035','4519','9983','7267','6861','4502','4503','4568','6367',
+  '7741','8801','6501','7011','5401','3382','8267','6702','9020','9022',
+  '7269','4661','6098','4755','3659','2413','9064','7751','6971','4578',
+  '8058','8031','8053','7733','6762','9613','4307','3086','9104','9101',
+  '1925','7013','5108','3407','4523','4151','6301','6326','7832','8697'
+];
+
+async function doScreen(){
+  const minW=+document.getElementById('scW').value;
+  const minM=+document.getElementById('scM').value;
+  const el=document.getElementById('screenResult');
+  el.innerHTML=`<div class="loading"><div class="spin"></div><span>スキャン中（${SCREEN_CODES.length}銘柄）...</span></div>`;
+  const results=[];
+  // 5件ずつ並列処理
+  for(let i=0;i<SCREEN_CODES.length;i+=5){
+    const batch=SCREEN_CODES.slice(i,i+5);
+    await Promise.allSettled(batch.map(async code=>{
+      try{
+        const sym=code+'.T';
+        const [w,m]= await Promise.all([fetchChart(sym,'1wk','5y'),fetchChart(sym,'1mo','15y')]);
+        const wp=perfectOrder(w), mp=perfectOrder(m);
+        if(wp.score>=minW || mp.score>=minM){
+          const n=await fetchName(sym).catch(()=>code);
+          results.push({code,name:n,ws:wp.score,ms:mp.score,price:wp.price});
+        }
+      }catch(e){}
+    }));
+  }
+  results.sort((a,b)=>b.ws+b.ms - a.ws-a.ms);
+  if(!results.length){
+    el.innerHTML='<div class="empty"><div class="empty-ico">🔍</div><p>条件に合う銘柄なし</p></div>'; return;
+  }
+  el.innerHTML=results.map(r=>`<div class="sc-item" onclick="jumpAnalyze('${r.code}')">
+    <div class="sc-code">${r.code}</div>
+    <div class="sc-name">${r.name}</div>
+    <div class="sc-scores" style="display:flex;gap:5px">
+      <span class="score-chip s${r.ws}">週${r.ws}</span>
+      <span class="score-chip s${r.ms}">月${r.ms}</span>
+    </div>
+  </div>`).join('');
+}
+
+// ── タブ / ユーティリティ ─────────────────────────────────
+function switchTab(btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('page-'+btn.dataset.tab).classList.add('active');
+  document.getElementById('navTitle').textContent={analyze:'株式分析',watch:'ウォッチリスト',screen:'スクリーナー'}[btn.dataset.tab];
+}
+function mk(tag,cls){const e=document.createElement(tag);if(cls)e.className=cls;return e;}
+function fmtN(v){
+  if(v==null||isNaN(v)) return '—';
+  const n=Number(v);
+  return n>=1000 ? n.toLocaleString('ja-JP',{maximumFractionDigits:0}) : n.toFixed(n>=10?1:2);
+}
+
+document.getElementById('codeInp').addEventListener('keydown',e=>{if(e.key==='Enter') doAnalyze();});
+document.getElementById('wlInp').addEventListener('keydown',e=>{if(e.key==='Enter') wlAdd();});
+renderWL();
+</script>
+</body>
+</html>
