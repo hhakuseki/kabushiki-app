@@ -13,6 +13,8 @@
 body{font-family:-apple-system,sans-serif;background:var(--bg);color:var(--t);max-width:430px;margin:0 auto;min-height:100vh}
 .nav{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:var(--nh);background:rgba(255,255,255,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--sep2);display:flex;align-items:center;padding:0 16px;z-index:100;padding-top:env(safe-area-inset-top)}
 .nav h1{font-size:17px;font-weight:600;flex:1;text-align:center}
+.nav-side{width:36px;display:flex;justify-content:flex-end}
+.nav-btn{background:none;border:none;font-size:20px;cursor:pointer;color:var(--p);padding:4px}
 .tabs{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:var(--tb);background:rgba(255,255,255,.92);backdrop-filter:blur(20px);border-top:1px solid var(--sep2);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
 .tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:none;font-size:10px;color:var(--t3);cursor:pointer;padding-top:6px}
 .tab-btn.active{color:var(--p)}
@@ -21,24 +23,23 @@ body{font-family:-apple-system,sans-serif;background:var(--bg);color:var(--t);ma
 .page{display:none;padding:0 0 16px}
 .page.active{display:block}
 .card{background:var(--c);border-radius:12px;margin:12px 16px 0;overflow:hidden}
-.card-header{padding:12px 16px 8px;font-size:12px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.5px}
+.card-hdr{padding:12px 16px 8px;font-size:12px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
+.card-hdr span{flex:1}
+.card-hdr-btn{background:none;border:none;font-size:18px;cursor:pointer;color:var(--t3);line-height:1;padding:0 2px}
 .search-wrap{padding:12px 16px 0}
 .search-row{display:flex;gap:8px}
 .search-inp{flex:1;height:44px;border:1.5px solid var(--sep);border-radius:10px;padding:0 12px;font-size:16px;background:var(--c);outline:none}
 .search-inp:focus{border-color:var(--p)}
 .search-btn{height:44px;padding:0 18px;background:var(--p);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
-/* Perfect Order */
+/* PO */
 .po-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--sep2)}
 .po-box{background:var(--c);padding:12px 8px;text-align:center}
 .po-box .lbl{font-size:11px;color:var(--t3);margin-bottom:4px}
 .po-num{font-size:30px;font-weight:700;line-height:1}
 .po-denom{font-size:13px;color:var(--t3)}
 .po-badge{display:inline-block;margin-top:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
-.b-perfect{background:#E3F9E5;color:#166534}
-.b-good{background:#DBEAFE;color:#1D4ED8}
-.b-mid{background:#FEF3C7;color:#92400E}
-.b-low{background:#FEE2E2;color:#991B1B}
-/* Pairs */
+.b-perfect{background:#E3F9E5;color:#166534}.b-good{background:#DBEAFE;color:#1D4ED8}
+.b-mid{background:#FEF3C7;color:#92400E}.b-low{background:#FEE2E2;color:#991B1B}
 .pairs-wrap{padding:4px 16px 12px}
 .pair-row{display:flex;align-items:center;padding:6px 0;border-bottom:1px solid var(--sep2)}
 .pair-row:last-child{border:none}
@@ -49,12 +50,15 @@ body{font-family:-apple-system,sans-serif;background:var(--bg);color:var(--t);ma
 .chart-tabs{display:flex;margin:8px 16px 0;border-radius:8px;background:var(--sep2);padding:2px}
 .ct{flex:1;padding:5px;text-align:center;font-size:12px;font-weight:600;border-radius:6px;cursor:pointer;color:var(--t3)}
 .ct.active{background:var(--c);color:var(--t);box-shadow:0 1px 3px rgba(0,0,0,.1)}
-.chart-wrap{padding:0 8px 6px}
+.chart-section{display:none}
+.chart-section.vis{display:block}
+.chart-wrap{padding:0 8px 4px}
+.chart-sub-lbl{font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;padding:8px 16px 2px}
 canvas{width:100%!important}
-.ma-legend{display:flex;flex-wrap:wrap;gap:4px 10px;padding:6px 16px 6px}
+.ma-legend{display:flex;flex-wrap:wrap;gap:4px 10px;padding:4px 16px 4px}
 .ma-li{display:flex;align-items:center;gap:4px;font-size:11px}
-.ma-dot{width:12px;height:3px;border-radius:2px}
-/* Stock hero */
+.ma-dot{width:14px;height:3px;border-radius:2px}
+/* Hero */
 .hero{padding:14px 16px 10px;display:flex;align-items:flex-start;gap:8px}
 .hero-info{flex:1}
 .hero-name{font-size:18px;font-weight:700;line-height:1.2}
@@ -92,14 +96,14 @@ canvas{width:100%!important}
 .wl-go{height:30px;padding:0 10px;background:var(--sep2);border:none;border-radius:7px;font-size:12px;color:var(--p);font-weight:600;cursor:pointer}
 .s5{background:#D1FAE5;color:#065F46}.s4{background:#DBEAFE;color:#1E40AF}
 .s3{background:#FEF3C7;color:#92400E}.s2,.s1,.s0{background:#FEE2E2;color:#991B1B}
-/* Spinner / Empty */
+/* Spinner */
 .spin{display:inline-block;width:20px;height:20px;border:3px solid var(--sep2);border-top-color:var(--p);border-radius:50%;animation:sp .7s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
 .loading{padding:40px;text-align:center;color:var(--t3);display:flex;flex-direction:column;align-items:center;gap:12px}
 .empty{padding:48px 24px;text-align:center;color:var(--t3)}
 .empty-ico{font-size:46px;margin-bottom:10px}
 .empty p{font-size:15px;line-height:1.5}
-/* Screen */
+/* Screener */
 .sc-ctrl{padding:12px 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .sc-lbl{font-size:13px;color:var(--t3);white-space:nowrap}
 .sc-sel{height:36px;padding:0 8px;border:1.5px solid var(--sep);border-radius:8px;font-size:13px;background:var(--c)}
@@ -108,12 +112,33 @@ canvas{width:100%!important}
 .sc-item:active{background:var(--sep2)}
 .sc-code{font-size:14px;font-weight:700;width:54px}
 .sc-name{font-size:13px;color:var(--t3);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Settings */
+.set-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none}
+.set-panel{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--c);border-radius:18px 18px 0 0;z-index:201;padding:16px 16px calc(env(safe-area-inset-bottom)+20px);max-height:88vh;overflow-y:auto;display:none}
+.set-panel-hdr{display:flex;align-items:center;margin-bottom:14px}
+.set-panel-title{font-size:17px;font-weight:700;flex:1}
+.set-close{background:none;border:none;font-size:26px;color:var(--t3);cursor:pointer;line-height:1}
+.set-section-lbl{font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 6px}
+.set-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--sep2)}
+.set-row:last-child{border:none}
+.set-row-lbl{font-size:13px;font-weight:500;min-width:58px}
+.set-color{width:38px;height:30px;border:none;border-radius:7px;cursor:pointer;padding:2px;background:none}
+.set-range{flex:1;height:4px;accent-color:var(--p)}
+.set-val{font-size:12px;color:var(--t3);min-width:26px;text-align:right}
+.set-reset{width:100%;height:44px;background:var(--r);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;margin-top:16px;cursor:pointer}
 </style>
 </head>
 <body>
-<div class="nav"><h1 id="navTitle">株式分析</h1></div>
-<div class="content">
 
+<div class="nav">
+  <div class="nav-side" style="justify-content:flex-start"></div>
+  <h1 id="navTitle">株式分析</h1>
+  <div class="nav-side">
+    <button class="nav-btn" id="settingsBtn" style="display:none" onclick="openSettings()">⚙️</button>
+  </div>
+</div>
+
+<div class="content">
   <!-- 分析 -->
   <div class="page active" id="page-analyze">
     <div class="search-wrap">
@@ -131,9 +156,7 @@ canvas{width:100%!important}
       <input class="wl-inp" id="wlInp" type="text" autocapitalize="characters" placeholder="銘柄コード or ティッカーを追加">
       <button class="wl-add" onclick="wlAdd()">追加</button>
     </div>
-    <div class="card" style="margin-top:12px">
-      <div id="wlList"></div>
-    </div>
+    <div class="card" style="margin-top:12px"><div id="wlList"></div></div>
     <div style="padding:12px 16px 0">
       <button class="search-btn" style="width:100%;background:var(--t2)" onclick="wlRefreshAll()">📊 全銘柄スコアを更新</button>
     </div>
@@ -148,7 +171,11 @@ canvas{width:100%!important}
       <select class="sc-sel" id="scM"><option value="5">5(完璧)</option><option value="4">4</option><option value="3" selected>3</option></select>
       <button class="sc-run" onclick="doScreen()">実行</button>
     </div>
-    <div class="card"><div id="screenResult"><div class="empty"><div class="empty-ico">🔍</div><p>条件を設定して「実行」を押すと<br>POをクリアした銘柄を逆引き<br><small>東証プライム主要約310銘柄をスキャン（3〜5分）</small></p></div></div></div>
+    <div class="card">
+      <div id="screenResult">
+        <div class="empty"><div class="empty-ico">🔍</div><p>条件を設定して「実行」<br><small>日経225主要約220銘柄をスキャン（約30秒）</small></p></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -164,361 +191,523 @@ canvas{width:100%!important}
   </button>
 </div>
 
+<!-- Settings overlay -->
+<div class="set-overlay" id="setOverlay" onclick="closeSettings()"></div>
+<div class="set-panel" id="setPanel">
+  <div class="set-panel-hdr">
+    <span class="set-panel-title">チャートカスタマイズ</span>
+    <button class="set-close" onclick="closeSettings()">×</button>
+  </div>
+  <div class="set-section-lbl">価格・出来高</div>
+  <div class="set-row">
+    <span class="set-row-lbl">価格ライン</span>
+    <input type="color" class="set-color" id="s_pc" oninput="S.pc=this.value;saveS();redraw()">
+    <span style="font-size:12px;color:var(--t3)">太さ</span>
+    <input type="range" class="set-range" id="s_pw" min="0.5" max="4" step="0.5" oninput="S.pw=+this.value;document.getElementById('s_pw_v').textContent=this.value;saveS();redraw()">
+    <span class="set-val" id="s_pw_v">1.5</span>
+  </div>
+  <div class="set-row">
+    <span class="set-row-lbl">出来高バー</span>
+    <input type="color" class="set-color" id="s_vc" oninput="S.vch=this.value;saveS();redraw()">
+  </div>
+  <div class="set-section-lbl">移動平均線</div>
+  <div id="maSetRows"></div>
+  <button class="set-reset" onclick="resetSettings()">リセット</button>
+</div>
+
 <script>
-// ── 定数 ──────────────────────────────────────────────────
-const PROXIES = [
+// ══ Settings ══════════════════════════════════════════════
+const DEFAULT_S={
+  pc:'#1C1C1E',pw:1.5,vch:'#3478F6',
+  mc:{5:'#FF3B30',10:'#FF9500',20:'#D97706',50:'#34C759',100:'#5856D6',200:'#007AFF'},
+  mw:{5:1.5,10:1.5,20:1.5,50:1.5,100:1.5,200:1.5}
+};
+let S=JSON.parse(JSON.stringify(DEFAULT_S));
+try{
+  const raw=JSON.parse(localStorage.getItem('kab_s')||'null');
+  if(raw){S.pc=raw.pc||S.pc;S.pw=raw.pw||S.pw;S.vch=raw.vch||S.vch;
+    if(raw.mc)Object.assign(S.mc,raw.mc);if(raw.mw)Object.assign(S.mw,raw.mw);}
+}catch(e){}
+function saveS(){localStorage.setItem('kab_s',JSON.stringify(S));}
+
+// Build MA rows in settings
+(()=>{
+  const el=document.getElementById('maSetRows');
+  el.innerHTML=[5,10,20,50,100,200].map(p=>`
+  <div class="set-row">
+    <span class="set-row-lbl">MA${p}</span>
+    <input type="color" class="set-color" id="s_mc_${p}" oninput="S.mc[${p}]=this.value;saveS();redraw()">
+    <span style="font-size:12px;color:var(--t3)">太さ</span>
+    <input type="range" class="set-range" id="s_mw_${p}" min="0.5" max="4" step="0.5" oninput="S.mw[${p}]=+this.value;document.getElementById('s_mw_${p}_v').textContent=this.value;saveS();redraw()">
+    <span class="set-val" id="s_mw_${p}_v">${S.mw[p]}</span>
+  </div>`).join('');
+})();
+
+function openSettings(){
+  document.getElementById('s_pc').value=S.pc;
+  document.getElementById('s_pw').value=S.pw;
+  document.getElementById('s_pw_v').textContent=S.pw;
+  document.getElementById('s_vc').value=S.vch;
+  [5,10,20,50,100,200].forEach(p=>{
+    document.getElementById(`s_mc_${p}`).value=S.mc[p];
+    document.getElementById(`s_mw_${p}`).value=S.mw[p];
+    document.getElementById(`s_mw_${p}_v`).textContent=S.mw[p];
+  });
+  document.getElementById('setOverlay').style.display='block';
+  document.getElementById('setPanel').style.display='block';
+}
+function closeSettings(){
+  document.getElementById('setOverlay').style.display='none';
+  document.getElementById('setPanel').style.display='none';
+}
+function resetSettings(){S=JSON.parse(JSON.stringify(DEFAULT_S));saveS();openSettings();redraw();}
+let _rdT=null;
+function redraw(){
+  clearTimeout(_rdT);
+  _rdT=setTimeout(()=>{
+    if(!currentData||!currentCType)return;
+    const btn=document.querySelector(`.ct[data-t="${currentCType}"]`);
+    if(btn)switchCT(btn);
+  },120);
+}
+
+// ══ Proxies & Fetch ════════════════════════════════════════
+const PROXIES=[
   'https://corsproxy.io/?',
   'https://api.allorigins.win/raw?url=',
   'https://corsproxy.org/?',
 ];
-let _pi = 0;
-async function proxyFetch(url) {
-  for (let i = 0; i < PROXIES.length; i++) {
-    const p = PROXIES[(_pi + i) % PROXIES.length];
-    try {
-      const r = await fetch(p + encodeURIComponent(url), {signal: AbortSignal.timeout(8000)});
-      if (r.ok) { _pi = (_pi + i) % PROXIES.length; return r; }
-    } catch(e) {}
+let _pi=0;
+async function proxyFetch(url,timeout=9000){
+  for(let i=0;i<PROXIES.length;i++){
+    const p=PROXIES[(_pi+i)%PROXIES.length];
+    try{
+      const r=await fetch(p+encodeURIComponent(url),{signal:AbortSignal.timeout(timeout)});
+      if(r.ok){_pi=(_pi+i)%PROXIES.length;return r;}
+    }catch(e){}
   }
-  throw new Error('通信エラー: 全プロキシ失敗');
-}
-const YF1   = 'https://query1.finance.yahoo.com/v8/finance/chart/';
-const YF2   = 'https://query2.finance.yahoo.com/v10/finance/quoteSummary/';
-const MA_PERIODS = [5,10,20,50,100,200];
-const MA_COLORS  = {5:'#FF3B30',10:'#FF9500',20:'#D97706',50:'#34C759',100:'#5856D6',200:'#007AFF'};
-let chartInst=null, rsiInst=null, macdInst=null;
-let currentData=null, currentCType='daily';
-let watchlist = JSON.parse(localStorage.getItem('kab_watch2')||'[]');
-
-// ── Yahoo Finance データ取得 ─────────────────────────────
-async function fetchChart(symbol, interval, range) {
-  const url = `${YF1}${symbol}?interval=${interval}&range=${range}&events=div`;
-  const r = await proxyFetch(url);
-  const j = await r.json();
-  const res = j.chart?.result?.[0];
-  if (!res) throw new Error('データなし');
-  const ts  = res.timestamp || [];
-  const q   = res.indicators.quote[0];
-  return ts.map((t,i) => ({
-    date: new Date(t*1000).toISOString().slice(0,10),
-    o: q.open?.[i], h: q.high?.[i], l: q.low?.[i], c: q.close?.[i], v: q.volume?.[i]
-  })).filter(d => d.c != null);
+  throw new Error('通信エラー');
 }
 
-async function fetchInfo(symbol) {
-  // v7 quote — no crumb required, proxy-friendly
-  const v7base = `?symbols=${symbol}`;
-  for (const host of ['https://query1.finance.yahoo.com','https://query2.finance.yahoo.com']) {
-    try {
-      const r = await proxyFetch(host + '/v7/finance/quote' + v7base);
-      const j = await r.json();
-      const q = j.quoteResponse?.result?.[0];
-      if (q && (q.trailingPE || q.priceToBook || q.epsTrailingTwelveMonths || q.trailingAnnualDividendYield)) {
-        const ts = q.earningsTimestampStart || q.earningsTimestampEnd || null;
-        return {
-          summaryDetail: { trailingPE: q.trailingPE, forwardPE: q.forwardPE, priceToBook: q.priceToBook,
-                           dividendYield: q.trailingAnnualDividendYield, trailingAnnualDividendYield: q.trailingAnnualDividendYield },
-          defaultKeyStatistics: { trailingEps: q.epsTrailingTwelveMonths },
-          financialData: { returnOnEquity: q.returnOnEquity },
-          calendarEvents: ts ? { earnings: { earningsDate: [{raw: ts}] } } : {}
+const YFQ='https://query1.finance.yahoo.com';
+const YFQ2='https://query2.finance.yahoo.com';
+const MA_PERIODS=[5,10,20,50,100,200];
+
+// Chart instances
+let ci=null,vi=null,ri=null,midi=null,wci=null,mci=null,wmwi=null,wmmi=null;
+let currentData=null,currentCType='daily';
+let watchlist=JSON.parse(localStorage.getItem('kab_watch2')||'[]');
+
+function destroyAll(){
+  [ci,vi,ri,midi,wci,mci,wmwi,wmmi].forEach(c=>{try{if(c)c.destroy();}catch(e){}});
+  ci=vi=ri=midi=wci=mci=wmwi=wmmi=null;
+}
+
+// ══ Data Fetch ═════════════════════════════════════════════
+async function fetchChart(symbol,interval,range){
+  const url=`${YFQ}/v8/finance/chart/${symbol}?interval=${interval}&range=${range}&events=div`;
+  const r=await proxyFetch(url);
+  const j=await r.json();
+  const res=j.chart?.result?.[0];
+  if(!res)throw new Error('データなし');
+  const ts=res.timestamp||[];
+  const q=res.indicators.quote[0];
+  return ts.map((t,i)=>({
+    date:new Date(t*1000).toISOString().slice(0,10),
+    o:q.open?.[i],h:q.high?.[i],l:q.low?.[i],c:q.close?.[i],v:q.volume?.[i]
+  })).filter(d=>d.c!=null);
+}
+
+async function fetchInfo(symbol){
+  // ① v7 quote — no crumb required
+  for(const h of[YFQ,YFQ2]){
+    try{
+      const r=await proxyFetch(`${h}/v7/finance/quote?symbols=${symbol}&corsDomain=finance.yahoo.com`);
+      const j=await r.json();
+      const q=j.quoteResponse?.result?.[0];
+      if(q&&(q.trailingPE!=null||q.priceToBook!=null||q.epsTrailingTwelveMonths!=null)){
+        const ts=q.earningsTimestampStart||q.earningsTimestampEnd||null;
+        return{
+          summaryDetail:{trailingPE:q.trailingPE,forwardPE:q.forwardPE,priceToBook:q.priceToBook,
+                         dividendYield:q.trailingAnnualDividendYield,trailingAnnualDividendYield:q.trailingAnnualDividendYield},
+          defaultKeyStatistics:{trailingEps:q.epsTrailingTwelveMonths},
+          financialData:{returnOnEquity:q.returnOnEquity},
+          calendarEvents:ts?{earnings:{earningsDate:[{raw:ts}]}}:{}
         };
       }
-    } catch(e) {}
+    }catch(e){}
   }
-  // fallback: v11 quoteSummary
-  const mods = 'summaryDetail,defaultKeyStatistics,calendarEvents,financialData';
-  for (const host of ['https://query1.finance.yahoo.com','https://query2.finance.yahoo.com']) {
-    try {
-      const r = await proxyFetch(`${host}/v11/finance/quoteSummary/${symbol}?modules=${mods}&formatted=false`);
-      const j = await r.json();
-      const res = j.quoteSummary?.result?.[0];
-      if (res) return res;
-    } catch(e) {}
+  // ② quoteSummary v10/v11 with corsDomain trick
+  const mods='summaryDetail,defaultKeyStatistics,financialData,calendarEvents';
+  for(const ver of['v10','v11']){
+    for(const h of[YFQ,YFQ2]){
+      try{
+        const url=`${h}/${ver}/finance/quoteSummary/${symbol}?modules=${mods}&formatted=false&corsDomain=finance.yahoo.com`;
+        const r=await proxyFetch(url);
+        const j=await r.json();
+        const res=j.quoteSummary?.result?.[0];
+        if(res&&(res.summaryDetail||res.financialData))return res;
+      }catch(e){}
+    }
   }
-  return {};
-}
-function getRaw(x) { return x == null ? null : (typeof x === 'object' ? (x.raw ?? x) : x); }
-
-async function fetchName(symbol) {
-  const url = `${YF1}${symbol}?interval=1d&range=5d`;
-  const r = await proxyFetch(url);
-  const j = await r.json();
-  const meta = j.chart?.result?.[0]?.meta;
-  return meta?.longName || meta?.shortName || symbol;
+  return{};
 }
 
-// ── テクニカル指標 ────────────────────────────────────────
-function calcMA(closes, p) {
-  return closes.map((_, i) => {
-    if (i < p-1) return null;
-    const s = closes.slice(i-p+1, i+1);
+function getRaw(x){return x==null?null:(typeof x==='object'?(x.raw??x):x);}
+
+async function fetchName(symbol){
+  const url=`${YFQ}/v8/finance/chart/${symbol}?interval=1d&range=5d`;
+  const r=await proxyFetch(url);
+  const j=await r.json();
+  const meta=j.chart?.result?.[0]?.meta;
+  return meta?.longName||meta?.shortName||symbol;
+}
+
+// ══ Technicals ═════════════════════════════════════════════
+function calcMA(closes,p){
+  return closes.map((_,i)=>{
+    if(i<p-1)return null;
+    const s=closes.slice(i-p+1,i+1);
     return s.reduce((a,b)=>a+(b||0),0)/s.length;
   });
 }
-function calcRSI(closes, p=14) {
-  const rsi = new Array(closes.length).fill(null);
-  for (let i=p; i<closes.length; i++) {
-    let g=0, l=0;
-    for (let j=i-p+1; j<=i; j++) {
-      const d = closes[j]-closes[j-1];
-      if (d>0) g+=d; else l-=d;
-    }
-    const rs = l===0 ? 100 : g/p/(l/p);
-    rsi[i] = 100 - 100/(1+rs);
+function calcRSI(closes,p=14){
+  const rsi=new Array(closes.length).fill(null);
+  for(let i=p;i<closes.length;i++){
+    let g=0,l=0;
+    for(let j=i-p+1;j<=i;j++){const d=closes[j]-closes[j-1];if(d>0)g+=d;else l-=d;}
+    const rs=l===0?100:g/p/(l/p);
+    rsi[i]=100-100/(1+rs);
   }
   return rsi;
 }
-function calcMACD(closes, f=12, s=26, sig=9) {
-  const ema = (arr, span) => {
-    const k=2/(span+1), r=new Array(arr.length).fill(null);
-    let prev=null;
+function calcMACD(closes,f=12,s=26,sig=9){
+  const ema=(arr,span)=>{
+    const k=2/(span+1),r=new Array(arr.length).fill(null);let prev=null;
     for(let i=0;i<arr.length;i++){
       if(arr[i]==null){r[i]=null;continue;}
-      r[i] = prev==null ? arr[i] : arr[i]*k + prev*(1-k);
-      prev = r[i];
-    }
-    return r;
+      r[i]=prev==null?arr[i]:arr[i]*k+prev*(1-k);prev=r[i];
+    }return r;
   };
-  const ef=ema(closes,f), es=ema(closes,s);
+  const ef=ema(closes,f),es=ema(closes,s);
   const macd=ef.map((v,i)=>v==null||es[i]==null?null:v-es[i]);
-  const signal=ema(macd, sig);
+  const signal=ema(macd,sig);
   const hist=macd.map((v,i)=>v==null||signal[i]==null?null:v-signal[i]);
-  return {macd, signal, hist};
+  return{macd,signal,hist};
 }
-function perfectOrder(rows) {
-  const closes = rows.map(r=>r.c);
-  const mas = {};
-  MA_PERIODS.forEach(p => { mas[p] = calcMA(closes, p); });
-  const latest = {};
-  MA_PERIODS.forEach(p => { latest[p] = mas[p][mas[p].length-1]; });
-  const pairs = [];
+function perfectOrder(rows){
+  const closes=rows.map(r=>r.c);
+  const mas={};
+  MA_PERIODS.forEach(p=>{mas[p]=calcMA(closes,p);});
+  const latest={};
+  MA_PERIODS.forEach(p=>{latest[p]=mas[p][mas[p].length-1];});
+  const pairs=[];
   for(let i=0;i<MA_PERIODS.length-1;i++){
-    const a=MA_PERIODS[i], b=MA_PERIODS[i+1];
-    const va=latest[a], vb=latest[b];
-    pairs.push({label:`MA${a}>MA${b}`, ok: va!=null&&vb!=null ? va>vb : null, va, vb});
+    const a=MA_PERIODS[i],b=MA_PERIODS[i+1];
+    const va=latest[a],vb=latest[b];
+    pairs.push({label:`MA${a}>MA${b}`,ok:va!=null&&vb!=null?va>vb:null,va,vb});
   }
-  const score = pairs.filter(p=>p.ok===true).length;
-  const avail = pairs.filter(p=>p.ok!==null).length;
-  return { score, avail, is_perfect: score===5&&avail===5, pairs, ma_values: latest, price: closes[closes.length-1], mas };
+  const score=pairs.filter(p=>p.ok===true).length;
+  const avail=pairs.filter(p=>p.ok!==null).length;
+  return{score,avail,is_perfect:score===5&&avail===5,pairs,ma_values:latest,price:closes[closes.length-1],mas};
 }
 
-// ── 分析 ─────────────────────────────────────────────────
-async function doAnalyze(code) {
-  code = (code || document.getElementById('codeInp').value.trim()).toUpperCase();
-  if (!code) return;
-  const el = document.getElementById('analyzeResult');
-  el.innerHTML = '<div class="loading"><div class="spin"></div><span>データ取得中...</span></div>';
-  try {
-    // 4桁数字 → 東証(.T付加)、それ以外 → 米国株等ティッカーそのまま
-    const sym = /^\d{4,}$/.test(code) ? code+'.T' : code;
-    const [daily, weekly, monthly, info, name] = await Promise.all([
+// ══ Analysis ════════════════════════════════════════════════
+async function doAnalyze(code){
+  code=(code||document.getElementById('codeInp').value.trim()).toUpperCase();
+  if(!code)return;
+  const el=document.getElementById('analyzeResult');
+  el.innerHTML='<div class="loading"><div class="spin"></div><span>データ取得中...</span></div>';
+  document.getElementById('settingsBtn').style.display='none';
+  try{
+    const sym=/^\d{4,}$/.test(code)?code+'.T':code;
+    const [daily,weekly,monthly,info,name]=await Promise.all([
       fetchChart(sym,'1d','1y'),
       fetchChart(sym,'1wk','5y'),
-      fetchChart(sym,'1mo','15y'),
+      fetchChart(sym,'1mo','max'),
       fetchInfo(sym).catch(()=>({})),
       fetchName(sym).catch(()=>code)
     ]);
-    const d_po = perfectOrder(daily);
-    const w_po = perfectOrder(weekly);
-    const m_po = perfectOrder(monthly);
+    const d_po=perfectOrder(daily);
+    const w_po=perfectOrder(weekly);
+    const m_po=perfectOrder(monthly);
+    const closes=daily.map(r=>r.c);
+    const rsi=calcRSI(closes);
+    const {macd,signal,hist}=calcMACD(closes);
 
-    // RSI / MACD on daily
-    const closes = daily.map(r=>r.c);
-    const rsi = calcRSI(closes);
-    const {macd,signal,hist} = calcMACD(closes);
+    const sd=info.summaryDetail||{};
+    const ks=info.defaultKeyStatistics||{};
+    const fd=info.financialData||{};
+    const cal=info.calendarEvents||{};
+    let earningsDate=null,daysToEarnings=null;
+    try{
+      const ed=cal.earnings?.earningsDate?.[0]?.raw;
+      if(ed){earningsDate=new Date(ed*1000).toISOString().slice(0,10);daysToEarnings=Math.round((ed*1000-Date.now())/86400000);}
+    }catch(e){}
 
-    // Fundamentals
-    const sd = info.summaryDetail || {};
-    const ks = info.defaultKeyStatistics || {};
-    const fd = info.financialData || {};
-    const cal= info.calendarEvents || {};
-    let earningsDate = null, daysToEarnings = null;
-    try {
-      const ed = cal.earnings?.earningsDate?.[0]?.raw;
-      if (ed) {
-        earningsDate = new Date(ed*1000).toISOString().slice(0,10);
-        daysToEarnings = Math.round((ed*1000 - Date.now())/86400000);
-      }
-    } catch(e){}
-
-    // Signals
     const signals=[];
-    const rsiLast = rsi[rsi.length-1];
-    const macdLast = macd[macd.length-1], sigLast = signal[signal.length-1];
-    if(w_po.score>=4) signals.push({t:'bull',txt:`週足 ${w_po.score}/5ペア 上昇基調`});
-    if(m_po.score>=4) signals.push({t:'bull',txt:`月足 ${m_po.score}/5ペア 上昇基調`});
-    if(rsiLast && rsiLast<35) signals.push({t:'bull',txt:`RSI ${rsiLast.toFixed(0)} — 売られすぎ`});
-    if(rsiLast && rsiLast>70) signals.push({t:'bear',txt:`RSI ${rsiLast.toFixed(0)} — 買われすぎ`});
-    if(macdLast && sigLast) signals.push(macdLast>sigLast
-      ? {t:'bull',txt:'MACD シグナル上抜け'} : {t:'bear',txt:'MACD シグナル下抜け'});
-    if(daysToEarnings!=null && daysToEarnings>=0 && daysToEarnings<=10)
+    const rsiLast=rsi[rsi.length-1];
+    const macdLast=macd[macd.length-1],sigLast=signal[signal.length-1];
+    if(w_po.score>=4)signals.push({t:'bull',txt:`週足 ${w_po.score}/5ペア 上昇基調`});
+    if(m_po.score>=4)signals.push({t:'bull',txt:`月足 ${m_po.score}/5ペア 上昇基調`});
+    if(rsiLast&&rsiLast<35)signals.push({t:'bull',txt:`RSI ${rsiLast.toFixed(0)} — 売られすぎ`});
+    if(rsiLast&&rsiLast>70)signals.push({t:'bear',txt:`RSI ${rsiLast.toFixed(0)} — 買われすぎ`});
+    if(macdLast&&sigLast)signals.push(macdLast>sigLast?{t:'bull',txt:'MACD シグナル上抜け'}:{t:'bear',txt:'MACD シグナル下抜け'});
+    if(daysToEarnings!=null&&daysToEarnings>=0&&daysToEarnings<=10)
       signals.push({t:'warn',txt:`決算まで ${daysToEarnings}日 — エントリー注意`});
 
-    currentData = {code, name, daily, weekly, d_po, w_po, m_po, rsi, macd, signal, hist};
-    currentCType = 'daily';
-    renderAnalysis({code, name, price:d_po.price, d_po, w_po, m_po, signals, sd, ks, fd, earningsDate, daysToEarnings, daily, weekly, rsi, macd, signal, hist}, el);
-  } catch(e) {
-    el.innerHTML = `<div class="empty"><div class="empty-ico">⚠️</div><p>エラー: ${e.message}<br><small>銘柄コードを確認してください</small></p></div>`;
+    currentData={code,name,daily,weekly,monthly,d_po,w_po,m_po,rsi,macd,signal,hist};
+    currentCType='daily';
+    renderAnalysis({code,name,price:d_po.price,d_po,w_po,m_po,signals,sd,ks,fd,earningsDate,daysToEarnings},el);
+    document.getElementById('settingsBtn').style.display='block';
+  }catch(e){
+    el.innerHTML<`<div class="empty"><div class="empty-ico">⚠️</div><p>エラー: ${e.message}<br><small>銘柄コードを確認してください</small></p></div>`;
   }
 }
 
-function renderAnalysis(d, el) {
+function renderAnalysis(d,el){
   el.innerHTML='';
-  const ap = v => el.appendChild(v);
+  const ap=v=>el.appendChild(v);
 
   // Hero
-  const hero = mk('div','card');
-  hero.innerHTML = `<div class="hero"><div class="hero-info"><div class="hero-name">${d.name}</div><div class="hero-code">${d.code}</div></div><div class="hero-price"><div class="hero-priceval">${fmtN(d.price)}</div><div class="hero-yen">円</div></div></div>`;
+  const hero=mk('div','card');
+  hero.innerHTML=`<div class="hero"><div class="hero-info"><div class="hero-name">${d.name}</div><div class="hero-code">${d.code}</div></div><div class="hero-price"><div class="hero-priceval">${fmtN(d.price)}</div><div class="hero-yen">円</div></div></div>`;
   ap(hero);
 
-  // Earnings alert
-  if(d.daysToEarnings!=null && d.daysToEarnings>=0 && d.daysToEarnings<=14){
-    const ea=mk('div','earn-alert'); ea.innerHTML=`<span class="earn-icon">📅</span><span class="earn-msg">決算まで <strong>${d.daysToEarnings}日</strong>（${d.earningsDate}）</span>`; ap(ea);
+  if(d.daysToEarnings!=null&&d.daysToEarnings>=0&&d.daysToEarnings<=14){
+    const ea=mk('div','earn-alert');
+    ea.innerHTML<`<span class="earn-icon">📅</span><span class="earn-msg">決算まで <strong>${d.daysToEarnings}日</strong>（${d.earningsDate}）</span>`;
+    ap(ea);
   }
 
-  // Signals
   if(d.signals.length>0){
-    const sc=mk('div','card'); sc.style.marginTop='12px';
-    sc.innerHTML=`<div class="card-header">シグナル</div><div class="sig-list">${
+    const sc=mk('div','card');sc.style.marginTop='12px';
+    sc.innerHTML<`<div class="card-hdr"><span>シグナル</span></div><div class="sig-list">${
       d.signals.map(s=>`<div class="sig-item"><div class="sig-dot sd-${s.t}"></div><div class="sig-txt">${s.txt}</div></div>`).join('')
-    }</div>`; ap(sc);
+    }</div>`;ap(sc);
   }
 
-  // PO cards
-  const poc=mk('div','card'); poc.style.marginTop='12px';
-  poc.innerHTML=`<div class="card-header">パーフェクトオーダー（MA5 › MA10 › MA20 › MA50 › MA100 › MA200）</div><div class="po-grid">${poBox('日足',d.d_po)}${poBox('週足',d.w_po)}${poBox('月足',d.m_po)}</div>`; ap(poc);
+  // PO
+  const poc=mk('div','card');poc.style.marginTop='12px';
+  poc.innerHTML=`<div class="card-hdr"><span>パーフェクトオーダー</span></div><div class="po-grid">${poBox('日足',d.d_po)}${poBox('週足',d.w_po)}${poBox('月足',d.m_po)}</div>`;
+  ap(poc);
 
-  // Weekly pairs detail
-  const pd=mk('div','card'); pd.style.marginTop='12px';
-  pd.innerHTML<`<div class="card-header">週足 MAペア</div><div class="pairs-wrap">${pairsHtml(d.w_po)}</div>`; ap(pd);
+  // Weekly pairs
+  const pd=mk('div','card');pd.style.marginTop='12px';
+  pd.innerHTML=`<div class="card-hdr"><span>週足 MAペア</span></div><div class="pairs-wrap">${pairsHtml(d.w_po)}</div>`;
+  ap(pd);
 
   // Chart tabs
   const ctabs=mk('div','chart-tabs');
-  ctabs.innerHTML=`<div class="ct active" data-t="daily" onclick="switchCT(this)">日足</div><div class="ct" data-t="weekly" onclick="switchCT(this)">週足</div>`;
+  ctabs.innerHTML<`<div class="ct active" data-t="daily" onclick="switchCT(this)">日足</div><div class="ct" data-t="weekly" onclick="switchCT(this)">週足</div><div class="ct" data-t="monthly" onclick="switchCT(this)">月足</div><div class="ct" data-t="wm" onclick="switchCT(this)">週/月</div>`;
   ap(ctabs);
 
   // Chart card
-  const cc=mk('div','card'); cc.style.marginTop='8px'; cc.id='chartCard';
-  cc.innerHTML=`<div class="card-header">移動平均線チャート</div><div class="ma-legend" id="maLeg"></div><div class="chart-wrap"><canvas id="mainC" height="220"></canvas></div><div class="chart-wrap"><canvas id="rsiC" height="85"></canvas></div><div class="chart-wrap"><canvas id="macdC" height="85"></canvas></div>`; ap(cc);
+  const cc=mk('div','card');cc.style.marginTop='8px';cc.id='chartCard';
+  cc.innerHTML=`
+    <div class="card-hdr"><span>チャート</span><button class="card-hdr-btn" onclick="openSettings()">⚙️</button></div>
+
+    <div class="chart-section vis" id="sec-daily">
+      <div class="ma-legend" id="maLeg"></div>
+      <div class="chart-wrap"><canvas id="mainC" height="260"></canvas></div>
+      <div class="chart-sub-lbl" style="padding-top:0">📊 出来高</div>
+      <div class="chart-wrap"><canvas id="volC" height="65"></canvas></div>
+      <div class="chart-sub-lbl">RSI(14)</div>
+      <div class="chart-wrap"><canvas id="rsiC" height="75"></canvas></div>
+      <div class="chart-sub-lbl">MACD</div>
+      <div class="chart-wrap"><canvas id="macdC" height="75"></canvas></div>
+    </div>
+
+    <div class="chart-section" id="sec-weekly">
+      <div class="ma-legend" id="maLegW"></div>
+      <div class="chart-wrap"><canvas id="weeklyC" height="260"></canvas></div>
+    </div>
+
+    <div class="chart-section" id="sec-monthly">
+      <div class="ma-legend" id="maLegM"></div>
+      <div class="chart-wrap"><canvas id="monthlyC" height="260"></canvas></div>
+    </div>
+
+    <div class="chart-section" id="sec-wm">
+      <div class="chart-sub-lbl">📈 週足</div>
+      <div class="ma-legend" id="maLegWM"></div>
+      <div class="chart-wrap"><canvas id="wmWC" height="210"></canvas></div>
+      <div class="chart-sub-lbl">📉 月足</div>
+      <div class="chart-wrap"><canvas id="wmMC" height="210"></canvas></div>
+    </div>`;
+  ap(cc);
 
   // Fundamentals
-  const per = getRaw(d.sd.trailingPE) ?? getRaw(d.sd.forwardPE);
-  const pbr = getRaw(d.sd.priceToBook);
-  const eps = getRaw(d.ks.trailingEps);
-  const roe = getRaw(d.fd.returnOnEquity);
-  const dy  = getRaw(d.sd.dividendYield) ?? getRaw(d.sd.trailingAnnualDividendYield);
-  const fc=mk('div','card'); fc.style.marginTop='12px';
-  fc.innerHTML=`<div class="card-header">ファンダメンタル</div><div class="fund-grid">
-    <div class="fund-item"><div class="fund-lbl">PER</div><div class="fund-val">${per?per.toFixed(1)+'倍':'—'}</div></div>
-    <div class="fund-item"><div class="fund-lbl">PBR</div><div class="fund-val">${pbr?pbr.toFixed(2)+'倍':'—'}</div></div>
-    <div class="fund-item"><div class="fund-lbl">EPS</div><div class="fund-val">${eps?fmtN(eps)+'円':'—'}</div></div>
-    <div class="fund-item"><div class="fund-lbl">ROE</div><div class="fund-val">${roe?(roe*100).toFixed(1)+'%':'—'}</div></div>
-    <div class="fund-item"><div class="fund-lbl">配当利回り</div><div class="fund-val">${dy?(dy*100).toFixed(2)+'%':'—'}</div></div>
+  const per=getRaw(d.sd.trailingPE)??getRaw(d.sd.forwardPE);
+  const pbr=getRaw(d.sd.priceToBook);
+  const eps=getRaw(d.ks.trailingEps);
+  const roe=getRaw(d.fd.returnOnEquity);
+  const dy=getRaw(d.sd.dividendYield)??getRaw(d.sd.trailingAnnualDividendYield);
+  const fc=mk('div','card');fc.style.marginTop='12px';
+  fc.innerHTML=`<div class="card-hdr"><span>ファンダメンタル</span></div><div class="fund-grid">
+    <div class="fund-item"><div class="fund-lbl">PER</div><div class="fund-val">${per!=null?per.toFixed(1)+'倍':'—'}</div></div>
+    <div class="fund-item"><div class="fund-lbl">PBR</div><div class="fund-val">${pbr!=null?pbr.toFixed(2)+'倍':'—'}</div></div>
+    <div class="fund-item"><div class="fund-lbl">EPS</div><div class="fund-val">${eps!=null?fmtN(eps)+'円':'—'}</div></div>
+    <div class="fund-item"><div class="fund-lbl">ROE</div><div class="fund-val">${roe!=null?(roe*100).toFixed(1)+'%':'—'}</div></div>
+    <div class="fund-item"><div class="fund-lbl">配当利回り</div><div class="fund-val">${dy!=null?(dy*100).toFixed(2)+'%':'—'}</div></div>
     <div class="fund-item"><div class="fund-lbl">次回決算</div><div class="fund-val" style="font-size:13px">${d.earningsDate||'—'}</div></div>
-  </div>`; ap(fc);
+  </div>`;ap(fc);
 
-  setTimeout(() => drawCharts(d, 'daily'), 60);
+  setTimeout(()=>drawDaily(currentData),80);
 }
 
-function poBox(lbl, po) {
-  if(!po) return `<div class="po-box"><div class="lbl">${lbl}</div><div class="po-num">—</div></div>`;
-  const s=po.score, cls=s===5?'b-perfect':s>=4?'b-good':s>=3?'b-mid':'b-low';
+function poBox(lbl,po){
+  if(!po)return`<div class="po-box"><div class="lbl">${lbl}</div><div class="po-num">—</div></div>`;
+  const s=po.score,cls=s===5?'b-perfect':s>=4?'b-good':s>=3?'b-mid':'b-low';
   const badge=s===5?'🎯 完璧！':s>=4?'↑ 強気':s>=3?'△ 中立':'↓ 弱気';
-  return `<div class="po-box"><div class="lbl">${lbl}</div><div><span class="po-num">${s}</span><span class="po-denom">/5</span></div><div class="po-badge ${cls}">${badge}</div></div>`;
+  return`<div class="po-box"><div class="lbl">${lbl}</div><div><span class="po-num">${s}</span><span class="po-denom">/5</span></div><div class="po-badge ${cls}">${badge}</div></div>`;
 }
-
-function pairsHtml(po) {
-  if(!po?.pairs) return '<div style="color:var(--t3);padding:8px">データなし</div>';
+function pairsHtml(po){
+  if(!po?.pairs)return'<div style="color:var(--t3);padding:8px">データなし</div>';
   return po.pairs.map(p=>{
-    const icon = p.ok===null?'—':p.ok?'✅':'❌';
-    return `<div class="pair-row"><div class="pair-lbl">${p.label.replace('MA','MA ')}</div><div class="pair-vals">${p.va?fmtN(p.va):'—'} / ${p.vb?fmtN(p.vb):'—'}</div><div class="pair-icon">${icon}</div></div>`;
+    const icon=p.ok===null?'—':p.ok?'✅':'❌';
+    return`<div class="pair-row"><div class="pair-lbl">${p.label.replace('MA','MA ')}</div><div class="pair-vals">${p.va?fmtN(p.va):'—'} / ${p.vb?fmtN(p.vb):'—'}</div><div class="pair-icon">${icon}</div></div>`;
   }).join('');
 }
 
-function switchCT(btn) {
+// ══ Chart Switching ═════════════════════════════════════════
+function switchCT(btn){
   document.querySelectorAll('.ct').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
-  currentCType = btn.dataset.t;
-  if(currentData) drawCharts(currentData, currentCType);
+  currentCType=btn.dataset.t;
+  document.querySelectorAll('.chart-section').forEach(s=>s.classList.remove('vis'));
+  const sec=document.getElementById('sec-'+currentCType);
+  if(sec)sec.classList.add('vis');
+  if(!currentData)return;
+  destroyAll();
+  switch(currentCType){
+    case 'daily': drawDaily(currentData); break;
+    case 'weekly': wci=drawTF(currentData.weekly,'weeklyC','maLegW'); break;
+    case 'monthly': mci=drawTF(currentData.monthly,'monthlyC','maLegM'); break;
+    case 'wm':
+      wmwi=drawTF(currentData.weekly,'wmWC','maLegWM');
+      wmmi=drawTF(currentData.monthly,'wmMC',null);
+      break;
+  }
 }
 
-function drawCharts(d, type) {
-  const rows = type==='weekly' ? d.weekly : d.daily;
-  const closes = rows.map(r=>r.c);
-  const labels = rows.map(r=>r.date);
+function maLegHtml(){
+  return MA_PERIODS.map(p=>`<div class="ma-li"><div class="ma-dot" style="background:${S.mc[p]};height:${Math.max(2,S.mw[p])}px"></div>MA${p}</div>`).join('');
+}
 
-  // MA legend
-  const leg=document.getElementById('maLeg');
-  if(leg) leg.innerHTML = MA_PERIODS.map(p=>`<div class="ma-li"><div class="ma-dot" style="background:${MA_COLORS[p]}"></div>MA${p}</div>`).join('');
-
-  // Main chart
-  if(chartInst) chartInst.destroy();
-  const ctx=document.getElementById('mainC');
-  if(!ctx) return;
-  const ds=[{label:'終値',data:closes,borderColor:'#1C1C1E',borderWidth:1.5,pointRadius:0,tension:0,fill:false,order:10}];
+function drawTF(rows,canvasId,legendId){
+  const closes=rows.map(r=>r.c);
+  const labels=rows.map(r=>r.date);
+  const ds=[{label:'終値',data:closes,borderColor:S.pc,borderWidth:S.pw,pointRadius:0,tension:0,fill:false,order:10}];
   MA_PERIODS.forEach(p=>{
-    const ma=calcMA(closes,p);
-    ds.push({label:`MA${p}`,data:ma,borderColor:MA_COLORS[p],borderWidth:1.5,pointRadius:0,tension:0,fill:false});
+    ds.push({label:`MA${p}`,data:calcMA(closes,p),borderColor:S.mc[p],borderWidth:S.mw[p],pointRadius:0,tension:0,fill:false});
   });
-  chartInst=new Chart(ctx,{type:'line',data:{labels,datasets:ds},options:{
+  if(legendId){const leg=document.getElementById(legendId);if(leg)leg.innerHTML=maLegHtml();}
+  const ctx=document.getElementById(canvasId);
+  if(!ctx)return null;
+  return new Chart(ctx,{type:'line',data:{labels,datasets:ds},options:{
     responsive:true,maintainAspectRatio:false,animation:false,
     interaction:{mode:'index',intersect:false},
     plugins:{legend:{display:false}},
-    scales:{x:{ticks:{maxTicksLimit:6,font:{size:10}},grid:{display:false}},
-            y:{position:'right',ticks:{maxTicksLimit:5,font:{size:10},callback:v=>fmtN(v)},grid:{color:'#F0F0F0'}}}
+    scales:{
+      x:{ticks:{maxTicksLimit:6,font:{size:10}},grid:{display:false}},
+      y:{position:'right',ticks:{maxTicksLimit:5,font:{size:10},callback:v=>fmtN(v)},grid:{color:'#F0F0F0'}}
+    }
+  }});
+}
+
+function drawDaily(d){
+  const rows=d.daily;
+  const closes=rows.map(r=>r.c);
+  const vols=rows.map(r=>r.v||0);
+  const labels=rows.map(r=>r.date);
+
+  // MA legend
+  const leg=document.getElementById('maLeg');
+  if(leg)leg.innerHTML=maLegHtml();
+
+  // Price + MA
+  const ctx=document.getElementById('mainC');
+  if(!ctx)return;
+  const ds=[{label:'終値',data:closes,borderColor:S.pc,borderWidth:S.pw,pointRadius:0,tension:0,fill:false,order:10}];
+  MA_PERIODS.forEach(p=>{
+    ds.push({label:`MA${p}`,data:calcMA(closes,p),borderColor:S.mc[p],borderWidth:S.mw[p],pointRadius:0,tension:0,fill:false});
+  });
+  ci=new Chart(ctx,{type:'line',data:{labels,datasets:ds},options:{
+    responsive:true,maintainAspectRatio:false,animation:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{ticks:{maxTicksLimit:6,font:{size:10}},grid:{display:false}},
+      y:{position:'right',ticks:{maxTicksLimit:5,font:{size:10},callback:v=>fmtN(v)},grid:{color:'#F0F0F0'}}
+    }
   }});
 
+  // Volume
+  const vc=document.getElementById('volC');
+  if(vc){
+    vi=new Chart(vc,{type:'bar',data:{labels,datasets:[{
+      label:'出来高',data:vols,
+      backgroundColor:S.vch+'99',borderWidth:0,
+      barPercentage:1,categoryPercentage:1
+    }]},options:{
+      responsive:true,maintainAspectRatio:false,animation:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{display:false},grid:{display:false}},
+        y:{position:'right',ticks:{maxTicksLimit:3,font:{size:9},callback:v=>v>=1e8?`${(v/1e8).toFixed(0)}億`:v>=1e4?`${(v/1e4).toFixed(0)}万`:''},grid:{color:'#F0F0F0'}}
+      }
+    }});
+  }
+
   // RSI
-  if(rsiInst) rsiInst.destroy();
   const rc=document.getElementById('rsiC');
   if(rc){
-    if(type==='daily'){
-      rc.parentElement.style.display='block';
-      rsiInst=new Chart(rc,{type:'line',data:{labels,datasets:[{label:'RSI',data:d.rsi,borderColor:'#5856D6',borderWidth:1.5,pointRadius:0,tension:0,fill:false}]},options:{
-        responsive:true,maintainAspectRatio:false,animation:false,
-        plugins:{legend:{display:false}},
-        scales:{x:{ticks:{maxTicksLimit:6,font:{size:9}},grid:{display:false}},
-                y:{position:'right',min:0,max:100,ticks:{stepSize:20,font:{size:9}},
-                   grid:{color:c=>(c.tick.value===30||c.tick.value===70)?'#FF950080':'#F0F0F0'}}}
-      }});
-    } else { rc.parentElement.style.display='none'; }
+    ri=new Chart(rc,{type:'line',data:{labels,datasets:[{
+      label:'RSI',data:d.rsi,borderColor:'#5856D6',borderWidth:1.5,pointRadius:0,tension:0,fill:false
+    }]},options:{
+      responsive:true,maintainAspectRatio:false,animation:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{maxTicksLimit:6,font:{size:9}},grid:{display:false}},
+        y:{position:'right',min:0,max:100,ticks:{stepSize:20,font:{size:9}},
+           grid:{color:c=>(c.tick.value===30||c.tick.value===70)?'#FF950080':'#F0F0F0'}}
+      }
+    }});
   }
 
   // MACD
-  if(macdInst) macdInst.destroy();
   const mc=document.getElementById('macdC');
   if(mc){
-    if(type==='daily'){
-      mc.parentElement.style.display='block';
-      macdInst=new Chart(mc,{type:'bar',data:{labels,datasets:[
-        {label:'MACD',data:d.macd,borderColor:'#007AFF',borderWidth:1.5,type:'line',pointRadius:0,tension:0,fill:false,order:1},
-        {label:'Signal',data:d.signal,borderColor:'#FF3B30',borderWidth:1.5,type:'line',pointRadius:0,tension:0,fill:false,order:2},
-        {label:'Hist',data:d.hist,backgroundColor:d.hist.map(v=>v>=0?'rgba(52,199,89,.5)':'rgba(255,59,48,.5)'),order:3}
-      ]},options:{
-        responsive:true,maintainAspectRatio:false,animation:false,
-        plugins:{legend:{display:false}},
-        scales:{x:{ticks:{maxTicksLimit:6,font:{size:9}},grid:{display:false}},
-                y:{position:'right',ticks:{maxTicksLimit:4,font:{size:9}},grid:{color:'#F0F0F0'}}}
-      }});
-    } else { mc.parentElement.style.display='none'; }
+    midi=new Chart(mc,{type:'bar',data:{labels,datasets:[
+      {label:'MACD',data:d.macd,borderColor:'#007AFF',borderWidth:1.5,type:'line',pointRadius:0,tension:0,fill:false,order:1},
+      {label:'Signal',data:d.signal,borderColor:'#FF3B30',borderWidth:1.5,type:'line',pointRadius:0,tension:0,fill:false,order:2},
+      {label:'Hist',data:d.hist,backgroundColor:d.hist.map(v=>v>=0?'rgba(52,199,89,.5)':'rgba(255,59,48,.5)'),order:3}
+    ]},options:{
+      responsive:true,maintainAspectRatio:false,animation:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{maxTicksLimit:6,font:{size:9}},grid:{display:false}},
+        y:{position:'right',ticks:{maxTicksLimit:4,font:{size:9}},grid:{color:'#F0F0F0'}}
+      }
+    }});
   }
 }
 
-// ── ウォッチリスト ────────────────────────────────────────
-async function quickScore(code) {
-  const sym = /^\d{4,}$/.test(code) ? code+'.T' : code;
-  const [w,m] = await Promise.all([fetchChart(sym,'1wk','5y'), fetchChart(sym,'1mo','15y')]);
-  const n = await fetchName(sym).catch(()=>code);
-  const wp=perfectOrder(w), mp=perfectOrder(m);
-  return {code, name:n, weekly_score:wp.score, monthly_score:mp.score, price:wp.price};
+// ══ Watchlist ═══════════════════════════════════════════════
+async function quickScore(code){
+  const sym=/^\d{4,}$/.test(code)?code+'.T':code;
+  const [w,m]=await Promise.all([fetchChart(sym,'1wk','5y'),fetchChart(sym,'1mo','10y')]);
+  const n=await fetchName(sym).catch(()=>code);
+  const wp=perfectOrder(w),mp=perfectOrder(m);
+  return{code,name:n,weekly_score:wp.score,monthly_score:mp.score,price:wp.price};
 }
-
 function renderWL(){
   const el=document.getElementById('wlList');
-  if(!watchlist.length){el.innerHTML='<div class="empty"><div class="empty-ico">⭐</div><p>銘柄を追加してください</p></div>';return;}
+  if('watchlist.length){el.innerHTML='<div class="empty"><div class="empty-ico">⭐</div><p>銘柄を追加してください</p></div>';return;}
   el.innerHTML=watchlist.map((w,i)=>{
-    const ws=w.weekly_score??'?', ms=w.monthly_score??'?';
-    return `<div class="wl-item">
+    const ws=w.weekly_score??'?',ms=w.monthly_score??'?';
+    return`<div class="wl-item">
       <div class="wl-code">${w.code}</div>
       <div class="wl-name">${w.name||w.code}</div>
       <div class="wl-scores">
@@ -530,43 +719,29 @@ function renderWL(){
     </div>`;
   }).join('');
 }
-
 async function wlAdd(){
   const code=document.getElementById('wlInp').value.trim().toUpperCase();
-  if(!code) return;
-  if(watchlist.find(w=>w.code===code)) return;
-  watchlist.push({code, name:code});
-  saveWL(); renderWL();
+  if(!code||watchlist.find(w=>w.code===code))return;
+  watchlist.push({code,name:code});saveWL();renderWL();
   document.getElementById('wlInp').value='';
-  // バックグラウンドでスコア取得
-  quickScore(code).then(r=>{
-    const i=watchlist.findIndex(w=>w.code===code);
-    if(i>=0){Object.assign(watchlist[i],r);saveWL();renderWL();}
-  }).catch(()=>{});
+  quickScore(code).then(r=>{const i=watchlist.findIndex(w=>w.code===code);if(i>=0){Object.assign(watchlist[i],r);saveWL();renderWL();}}).catch(()=>{});
 }
-
 function wlDel(i){watchlist.splice(i,1);saveWL();renderWL();}
 function saveWL(){localStorage.setItem('kab_watch2',JSON.stringify(watchlist));}
-
 async function wlRefreshAll(){
-  if(!watchlist.length) return;
+  if(!watchlist.length)return;
   document.getElementById('wlList').innerHTML='<div class="loading"><div class="spin"></div><span>更新中...</span></div>';
-  await Promise.allSettled(watchlist.map(async(w,i)=>{
-    const r=await quickScore(w.code).catch(()=>null);
-    if(r) Object.assign(watchlist[i],r);
-  }));
-  saveWL(); renderWL();
+  await Promise.allSettled(watchlist.map(async(w,i)=>{const r=await quickScore(w.code).catch(()=>null);if(r)Object.assign(watchlist[i],r);}));
+  saveWL();renderWL();
 }
-
 function jumpAnalyze(code){
   document.getElementById('codeInp').value=code;
   document.querySelector('[data-tab="analyze"]').click();
   doAnalyze(code);
 }
 
-// ── スクリーナー ──────────────────────────────────────────
+// ══ Screener ════════════════════════════════════════════════
 const SCREEN_CODES=[
-  // 日経225・主要銘柄
   '1332','1333','1605','1721','1801','1802','1803','1808','1812','1925',
   '1928','1963','2002','2269','2282','2413','2502','2503','2801','2802',
   '2871','2914','3099','3289','3382','3401','3402','3407','3436','3659',
@@ -590,41 +765,6 @@ const SCREEN_CODES=[
   '9022','9062','9064','9101','9104','9107','9202','9301','9432','9433',
   '9434','9501','9502','9503','9531','9532','9602','9613','9681','9735',
   '9983','9984',
-  // 東証プライム追加銘柄
-  // 建設・住宅・設備
-  '1720','1820','1833','1893','1911','1921','1934','1944',
-  // 食品・飲料・外食
-  '2875','2897','2579','2702','2751','2784',
-  // 小売・流通
-  '2124','2432','2651','2670','2730','2782','3048','3086','3092','3197','3391','3543',
-  // 商社・卸売
-  '2768','2379',
-  // 不動産
-  '3003','3231','3288','3291',
-  // IT・ネット・SaaS
-  '2371','3697','3765','3808','4385','4443','4478','4480','4483',
-  // 化学・素材
-  '4041','4045','4114','4186','4403',
-  // 医薬品・医療
-  '4324','4508','4516','4521','4527','4536','4544','4549','4554',
-  // 人材・HR・広告
-  '4708','2462',
-  // エネルギー・非鉄金属
-  '5021','5706','5707',
-  // 機械・工作機械
-  '6136','6201','6222','6258','6268','6383',
-  // 電子部品・医療電子・半導体製造
-  '6592','6641','6806','6807','6849','6863','6869','6963','6965',
-  // 自動車部品
-  '7259','7276','7282','7283',
-  // 金融（ゆうちÂ�・SBI・オリックス・証券）
-  '7182','8473','8591','8616',
-  // 地方銀行
-  '8341','8361','8377','8385','8393','8403','8410','8418','8424','8439',
-  // スポーツ・ゲーム・エンタメ
-  '7936','9766',
-  // ITサービス・SI
-  '9719','9749',
 ];
 
 async function doScreen(){
@@ -633,29 +773,29 @@ async function doScreen(){
   const el=document.getElementById('screenResult');
   const total=SCREEN_CODES.length;
   let done=0;
-  const updProg=()=>{ el.innerHTML<`<div class="loading"><div class="spin"></div><span>スキャン中... ${done}/${total}銘柄</span></div>`; };
+  const updProg=()=>{el.innerHTML=`<div class="loading"><div class="spin"></div><span>スキャン中... ${done}/${total}銘柄</span></div>`;};
   updProg();
   const results=[];
-  // 10件ずつ並列処理
-  for(let i=0;i<SCREEN_CODES.length;i+=10){
-    const batch=SCREEN_CODES.slice(i,i+10);
+  for(let i=0;i<SCREEN_CODES.length;i+=15){
+    const batch=SCREEN_CODES.slice(i,i+15);
     await Promise.allSettled(batch.map(async code=>{
       try{
         const sym=code+'.T';
-        const [w,m]= await Promise.all([fetchChart(sym,'1wk','5y'),fetchChart(sym,'1mo','15y')]);
-        const wp=perfectOrder(w), mp=perfectOrder(m);
-        if(wp.score>=minW || mp.score>=minM){
+        const [w,m]=await Promise.all([
+          fetchChart(sym,'1wk','5y'),
+          fetchChart(sym,'1mo','10y')
+        ]);
+        const wp=perfectOrder(w),mp=perfectOrder(m);
+        if(wp.score>=minW||mp.score>=minM){
           const n=await fetchName(sym).catch(()=>code);
           results.push({code,name:n,ws:wp.score,ms:mp.score,price:wp.price});
         }
       }catch(e){}
-      done++; updProg();
+      done++;updProg();
     }));
   }
-  results.sort((a,b)=>b.ws+b.ms - a.ws-a.ms);
-  if(!results.length){
-    el.innerHTML='<div class="empty"><div class="empty-ico">🔍</div><p>条件に合う銘柄なし</p></div>'; return;
-  }
+  results.sort((a,b)=>(b.ws+b.ms)-(a.ws+a.ms));
+  if(!results.length){el.innerHTML='<div class="empty"><div class="empty-ico">🔍</div><p>条件に合う銘柄なし</p></div>';return;}
   el.innerHTML=results.map(r=>`<div class="sc-item" onclick="jumpAnalyze('${r.code}')">
     <div class="sc-code">${r.code}</div>
     <div class="sc-name">${r.name}</div>
@@ -666,23 +806,25 @@ async function doScreen(){
   </div>`).join('');
 }
 
-// ── タブ / ユーティリティ ─────────────────────────────────
+// ══ Utils ════════════════════════════════════════════════════
 function switchTab(btn){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('page-'+btn.dataset.tab).classList.add('active');
-  document.getElementById('navTitle').textContent={analyze:'ウォッチリスデ',watch:'ウォッチリスト',screen:'スクリーナー'}[btn.dataset.tab];
+  document.getElementById('navTitle').textContent={analyze:'株式分析',watch:'ウォッチリスト',screen:'スクリーナー'}[btn.dataset.tab];
+  if(btn.dataset.tab!=='analyze')document.getElementById('settingsBtn').style.display='none';
+  else if(currentData)document.getElementById('settingsBtn').style.display='block';
 }
 function mk(tag,cls){const e=document.createElement(tag);if(cls)e.className=cls;return e;}
 function fmtN(v){
-  if(v==null||isNaN(v)) return '—';
+  if(v==null||isNaN(v))return'—';
   const n=Number(v);
-  return n>=1000 ? n.toLocaleString('ja-JP',{maximumFractionDigits:0}) : n.toFixed(n>=10?1:2);
+  return n>=1000?n.toLocaleString('ja-JP',{maximumFractionDigits:0}):n.toFixed(n>=10?1:2);
 }
 
 document.getElementById('codeInp').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();doAnalyze();}});
-document.getElementById('wlInp').addEventListener('keydown',e=>{if(e.key==='Enter') wlAdd();});
+document.getElementById('wlInp').addEventListener('keydown',e=>{if(e.key==='Enter')wlAdd();});
 renderWL();
 </script>
 </body>
