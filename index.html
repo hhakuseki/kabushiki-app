@@ -704,7 +704,7 @@ async function quickScore(code){
 }
 function renderWL(){
   const el=document.getElementById('wlList');
-  if('watchlist.length){el.innerHTML='<div class="empty"><div class="empty-ico">⭐</div><p>銘柄を追加してください</p></div>';return;}
+  if(!watchlist.length){el.innerHTML='<div class="empty"><div class="empty-ico">⭐</div><p>銘柄を追加してください</p></div>';return;}
   el.innerHTML=watchlist.map((w,i)=>{
     const ws=w.weekly_score??'?',ms=w.monthly_score??'?';
     return`<div class="wl-item">
