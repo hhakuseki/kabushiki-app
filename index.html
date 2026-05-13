@@ -55,6 +55,13 @@ body{font-family:-apple-system,sans-serif;background:var(--bg);color:var(--t);ma
 .chart-wrap{padding:0 8px 4px}
 .chart-sub-lbl{font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;padding:8px 16px 2px}
 canvas{width:100%!important}
+/* Chart expand */
+.chart-wrap{position:relative}
+.chart-exp{position:absolute;top:6px;right:14px;background:rgba(0,0,0,.18);border:none;border-radius:5px;color:#fff;font-size:13px;padding:2px 6px;cursor:pointer;z-index:2;line-height:1.4}
+/* Img overlay */
+#imgOv{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:600;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;padding:12px}
+#imgOv img{max-width:100%;max-height:88vh;border-radius:8px;object-fit:contain}
+#imgOv p{color:rgba(255,255,255,.45);font-size:12px}
 .ma-legend{display:flex;flex-wrap:wrap;gap:4px 10px;padding:4px 16px 4px}
 .ma-li{display:flex;align-items:center;gap:4px;font-size:11px}
 .ma-dot{width:14px;height:3px;border-radius:2px}
@@ -191,6 +198,12 @@ canvas{width:100%!important}
   </button>
 </div>
 
+<!-- Image expand overlay -->
+<div id="imgOv" onclick="this.style.display='none'">
+  <img id="imgOvImg" src="" alt="">
+  <p>タップして閉じる</p>
+</div>
+
 <!-- Settings overlay -->
 <div class="set-overlay" id="setOverlay" onclick="closeSettings()"></div>
 <div class="set-panel" id="setPanel">
@@ -319,48 +332,71 @@ async function fetchChart(symbol,interval,range){
 }
 
 async function fetchInfo(symbol){
-  // ① v7 quote — no crumb required
+  const empty={summaryDetail:{},defaultKeyStatistics:{},financialData:{},calendarEvents:{}};
+  let result=JSON.parse(JSON.stringify(empty));
+
+  // ① v7 quote — fast, no crumb, always harvest whatever is available
   for(const h of[YFQ,YFQ2]){
     try{
-      const r=await proxyFetch(`${h}/v7/finance/quote?symbols=${symbol}&corsDomain=finance.yahoo.com`);
+      const r=await proxyFetch(`${h}/v7/finance/quote?symbols=${symbol}&corsDomain=finance.yahoo.com&formatted=false`);
       const j=await r.json();
       const q=j.quoteResponse?.result?.[0];
-      if(q&&(q.trailingPE!=null||q.priceToBook!=null||q.epsTrailingTwelveMonths!=null)){
-        const ts=q.earningsTimestampStart||q.earningsTimestampEnd||null;
-        return{
-          summaryDetail:{trailingPE:q.trailingPE,forwardPE:q.forwardPE,priceToBook:q.priceToBook,
-                         dividendYield:q.trailingAnnualDividendYield,trailingAnnualDividendYield:q.trailingAnnualDividendYield},
-          defaultKeyStatistics:{trailingEps:q.epsTrailingTwelveMonths},
-          financialData:{returnOnEquity:q.returnOnEquity},
-          calendarEvents:ts?{earnings:{earningsDate:[{raw:ts}]}}:{}
+      if(q){
+        result.summaryDetail={
+          trailingPE:q.trailingPE??null,forwardPE:q.forwardPE??null,
+          priceToBook:q.priceToBook??null,
+          dividendYield:q.trailingAnnualDividendYield??null,
+          trailingAnnualDividendYield:q.trailingAnnualDividendYield??null
         };
+        result.defaultKeyStatistics={trailingEps:q.epsTrailingTwelveMonths??null};
+        result.financialData={returnOnEquity:q.returnOnEquity??null};
+        const ts=q.earningsTimestampStart||q.earningsTimestampEnd||null;
+        if(ts)result.calendarEvents={earnings:{earningsDate:[{raw:ts}]}};
+        break;
       }
     }catch(e){}
   }
-  // ② quoteSummary v10/v11 with corsDomain trick
+
+  // ② quoteSummary v10/v11 — richer data (ROE etc), merge on top
   const mods='summaryDetail,defaultKeyStatistics,financialData,calendarEvents';
   for(const ver of['v10','v11']){
     for(const h of[YFQ,YFQ2]){
       try{
         const url=`${h}/${ver}/finance/quoteSummary/${symbol}?modules=${mods}&formatted=false&corsDomain=finance.yahoo.com`;
-        const r=await proxyFetch(url);
+        const r=await proxyFetch(url,7000);
         const j=await r.json();
         const res=j.quoteSummary?.result?.[0];
-        if(res&&(res.summaryDetail||res.financialData))return res;
+        if(res){
+          ['summaryDetail','defaultKeyStatistics','financialData'].forEach(mod=>{
+            if(res[mod])for(const k in res[mod])if(res[mod][k]!=null)result[mod][k]=res[mod][k];
+          });
+          if(res.calendarEvents)result.calendarEvents=res.calendarEvents;
+          return result;
+        }
       }catch(e){}
     }
   }
-  return{};
+  return result;
 }
 
 function getRaw(x){return x==null?null:(typeof x==='object'?(x.raw??x):x);}
 
 async function fetchName(symbol){
-  const url=`${YFQ}/v8/finance/chart/${symbol}?interval=1d&range=5d`;
-  const r=await proxyFetch(url);
-  const j=await r.json();
-  const meta=j.chart?.result?.[0]?.meta;
-  return meta?.longName||meta?.shortName||symbol;
+  // Try search API — returns Japanese shortname for .T stocks
+  try{
+    const r=await proxyFetch(`${YFQ}/v1/finance/search?q=${encodeURIComponent(symbol)}&newsCount=0&quotesCount=1`);
+    const j=await r.json();
+    const q=(j.quotes||[])[0];
+    if(q){const n=q.shortname||q.longname;if(n&&n!==symbol)return n;}
+  }catch(e){}
+  // Fallback: chart meta (prefer shortName = JP name)
+  try{
+    const r=await proxyFetch(`${YFQ}/v8/finance/chart/${symbol}?interval=1d&range=5d`);
+    const j=await r.json();
+    const meta=j.chart?.result?.[0]?.meta;
+    return meta?.shortName||meta?.longName||symbol;
+  }catch(e){}
+  return symbol;
 }
 
 // ══ Technicals ═════════════════════════════════════════════
@@ -509,31 +545,31 @@ function renderAnalysis(d,el){
 
     <div class="chart-section vis" id="sec-daily">
       <div class="ma-legend" id="maLeg"></div>
-      <div class="chart-wrap"><canvas id="mainC" height="260"></canvas></div>
+      <div class="chart-wrap"><button class="chart-exp" onclick="expImg('mainC')">⤢</button><canvas id="mainC" height="270"></canvas></div>
       <div class="chart-sub-lbl" style="padding-top:0">📊 出来高</div>
-      <div class="chart-wrap"><canvas id="volC" height="65"></canvas></div>
+      <div class="chart-wrap"><button class="chart-exp" onclick="expImg('volC')">⤢</button><canvas id="volC" height="65"></canvas></div>
       <div class="chart-sub-lbl">RSI(14)</div>
-      <div class="chart-wrap"><canvas id="rsiC" height="75"></canvas></div>
+      <div class="chart-wrap"><button class="chart-exp" onclick="expImg('rsiC')">⤢</button><canvas id="rsiC" height="75"></canvas></div>
       <div class="chart-sub-lbl">MACD</div>
-      <div class="chart-wrap"><canvas id="macdC" height="75"></canvas></div>
+      <div class="chart-wrap"><button class="chart-exp" onclick="expImg('macdC')">⤢</button><canvas id="macdC" height="75"></canvas></div>
     </div>
 
     <div class="chart-section" id="sec-weekly">
       <div class="ma-legend" id="maLegW"></div>
-      <div class="chart-wrap"><canvas id="weeklyC" height="260"></canvas></div>
+      <div class="chart-wrap"><button class="chart-exp" onclick="expImg('weeklyC')">⤢</button><canvas id="weeklyC" height="320"></canvas></div>
     </div>
 
     <div class="chart-section" id="sec-monthly">
       <div class="ma-legend" id="maLegM"></div>
-      <div class="chart-wrap"><canvas id="monthlyC" height="260"></canvas></div>
+      <div class="chart-wrap"><button class="chart-exp" onclick="expImg('monthlyC')">⤢</button><canvas id="monthlyC" height="320"></canvas></div>
     </div>
 
     <div class="chart-section" id="sec-wm">
       <div class="chart-sub-lbl">📈 週足</div>
       <div class="ma-legend" id="maLegWM"></div>
-      <div class="chart-wrap"><canvas id="wmWC" height="210"></canvas></div>
+      <div class="chart-wrap"><button class="chart-exp" onclick="expImg('wmWC')">⤢</button><canvas id="wmWC" height="230"></canvas></div>
       <div class="chart-sub-lbl">📉 月足</div>
-      <div class="chart-wrap"><canvas id="wmMC" height="210"></canvas></div>
+      <div class="chart-wrap"><button class="chart-exp" onclick="expImg('wmMC')">⤢</button><canvas id="wmMC" height="230"></canvas></div>
     </div>`;
   ap(cc);
 
@@ -786,7 +822,7 @@ async function doScreen(){
           fetchChart(sym,'1mo','10y')
         ]);
         const wp=perfectOrder(w),mp=perfectOrder(m);
-        if(wp.score>=minW||mp.score>=minM){
+        if(wp.score>=minW&&mp.score>=minM){
           const n=await fetchName(sym).catch(()=>code);
           results.push({code,name:n,ws:wp.score,ms:mp.score,price:wp.price});
         }
@@ -804,6 +840,15 @@ async function doScreen(){
       <span class="score-chip s${r.ms}">月${r.ms}</span>
     </div>
   </div>`).join('');
+}
+
+// ══ Chart expand ════════════════════════════════════════════
+function expImg(canvasId){
+  const c=document.getElementById(canvasId);
+  if(!c)return;
+  const img=c.toDataURL('image/png');
+  document.getElementById('imgOvImg').src=img;
+  document.getElementById('imgOv').style.display='flex';
 }
 
 // ══ Utils ════════════════════════════════════════════════════
