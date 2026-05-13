@@ -291,7 +291,7 @@ const PROXIES=[
   'https://corsproxy.org/?',
 ];
 let _pi=0;
-async function proxyFetch(url,timeout=9000){
+async function proxyFetch(url,timeout=4500){
   for(let i=0;i<PROXIES.length;i++){
     const p=PROXIES[(_pi+i)%PROXIES.length];
     try{
@@ -352,18 +352,21 @@ async function fetchInfo(symbol){
         result.financialData={returnOnEquity:q.returnOnEquity??null};
         const ts=q.earningsTimestampStart||q.earningsTimestampEnd||null;
         if(ts)result.calendarEvents={earnings:{earningsDate:[{raw:ts}]}};
+        // v7 has all fields we display — return immediately
+        const sd=result.summaryDetail,ks=result.defaultKeyStatistics,fd=result.financialData;
+        if(sd.trailingPE!=null||sd.priceToBook!=null||ks.trailingEps!=null||fd.returnOnEquity!=null)return result;
         break;
       }
     }catch(e){}
   }
 
-  // ② quoteSummary v10/v11 — richer data (ROE etc), merge on top
+  // ② quoteSummary v10/v11 — fallback if v7 returned no data
   const mods='summaryDetail,defaultKeyStatistics,financialData,calendarEvents';
   for(const ver of['v10','v11']){
     for(const h of[YFQ,YFQ2]){
       try{
         const url=`${h}/${ver}/finance/quoteSummary/${symbol}?modules=${mods}&formatted=false&corsDomain=finance.yahoo.com`;
-        const r=await proxyFetch(url,7000);
+        const r=await proxyFetch(url,4000);
         const j=await r.json();
         const res=j.quoteSummary?.result?.[0];
         if(res){
@@ -459,8 +462,8 @@ async function doAnalyze(code){
     const sym=/^\d{4,}$/.test(code)?code+'.T':code;
     const [daily,weekly,monthly,info,name]=await Promise.all([
       fetchChart(sym,'1d','1y'),
-      fetchChart(sym,'1wk','5y'),
-      fetchChart(sym,'1mo','max'),
+      fetchChart(sym,'1wk','3y'),
+      fetchChart(sym,'1mo','10y'),
       fetchInfo(sym).catch(()=>({})),
       fetchName(sym).catch(()=>code)
     ]);
@@ -497,7 +500,7 @@ async function doAnalyze(code){
     renderAnalysis({code,name,price:d_po.price,d_po,w_po,m_po,signals,sd,ks,fd,earningsDate,daysToEarnings},el);
     document.getElementById('settingsBtn').style.display='block';
   }catch(e){
-    el.innerHTML<`<div class="empty"><div class="empty-ico">⚠️</div><p>エラー: ${e.message}<br><small>銘柄コードを確認してください</small></p></div>`;
+    el.innerHTML=`<div class="empty"><div class="empty-ico">⚠️</div><p>エラー: ${e.message}<br><small>銘柄コードを確認してください</small></p></div>`;
   }
 }
 
@@ -512,13 +515,13 @@ function renderAnalysis(d,el){
 
   if(d.daysToEarnings!=null&&d.daysToEarnings>=0&&d.daysToEarnings<=14){
     const ea=mk('div','earn-alert');
-    ea.innerHTML<`<span class="earn-icon">📅</span><span class="earn-msg">決算まで <strong>${d.daysToEarnings}日</strong>（${d.earningsDate}）</span>`;
+    ea.innerHTML=`<span class="earn-icon">📅</span><span class="earn-msg">決算まで <strong>${d.daysToEarnings}日</strong>（${d.earningsDate}）</span>`;
     ap(ea);
   }
 
   if(d.signals.length>0){
     const sc=mk('div','card');sc.style.marginTop='12px';
-    sc.innerHTML<`<div class="card-hdr"><span>シグナル</span></div><div class="sig-list">${
+    sc.innerHTML=`<div class="card-hdr"><span>シグナル</span></div><div class="sig-list">${
       d.signals.map(s=>`<div class="sig-item"><div class="sig-dot sd-${s.t}"></div><div class="sig-txt">${s.txt}</div></div>`).join('')
     }</div>`;ap(sc);
   }
@@ -530,12 +533,12 @@ function renderAnalysis(d,el){
 
   // Weekly pairs
   const pd=mk('div','card');pd.style.marginTop='12px';
-  pd.innerHTML=`<div class="card-hdr"><span>週足 MAペア</span></div><div class="pairs-wrap">${pairsHtml(d.w_po)}</div>`;
+  pd.innerHTML<`<div class="card-hdr"><span>週足 MAペア</span></div><div class="pairs-wrap">${pairsHtml(d.w_po)}</div>`;
   ap(pd);
 
   // Chart tabs
   const ctabs=mk('div','chart-tabs');
-  ctabs.innerHTML<`<div class="ct active" data-t="daily" onclick="switchCT(this)">日足</div><div class="ct" data-t="weekly" onclick="switchCT(this)">週足</div><div class="ct" data-t="monthly" onclick="switchCT(this)">月足</div><div class="ct" data-t="wm" onclick="switchCT(this)">週/月</div>`;
+  ctabs.innerHTML=`<div class="ct active" data-t="daily" onclick="switchCT(this)">日足</div><div class="ct" data-t="weekly" onclick="switchCT(this)">週足</div><div class="ct" data-t="monthly" onclick="switchCT(this)">月足</div><div class="ct" data-t="wm" onclick="switchCT(this)">週/月</div>`;
   ap(ctabs);
 
   // Chart card
@@ -580,7 +583,7 @@ function renderAnalysis(d,el){
   const roe=getRaw(d.fd.returnOnEquity);
   const dy=getRaw(d.sd.dividendYield)??getRaw(d.sd.trailingAnnualDividendYield);
   const fc=mk('div','card');fc.style.marginTop='12px';
-  fc.innerHTML=`<div class="card-hdr"><span>ファンダメンタル</span></div><div class="fund-grid">
+  fc.innerHTML<`<div class="card-hdr"><span>ファンダメンタル</span></div><div class="fund-grid">
     <div class="fund-item"><div class="fund-lbl">PER</div><div class="fund-val">${per!=null?per.toFixed(1)+'倍':'—'}</div></div>
     <div class="fund-item"><div class="fund-lbl">PBR</div><div class="fund-val">${pbr!=null?pbr.toFixed(2)+'倍':'—'}</div></div>
     <div class="fund-item"><div class="fund-lbl">EPS</div><div class="fund-val">${eps!=null?fmtN(eps)+'円':'—'}</div></div>
@@ -809,7 +812,7 @@ async function doScreen(){
   const el=document.getElementById('screenResult');
   const total=SCREEN_CODES.length;
   let done=0;
-  const updProg=()=>{el.innerHTML=`<div class="loading"><div class="spin"></div><span>スキャン中... ${done}/${total}銘柄</span></div>`;};
+  const updProg=()=>{el.innerHTML<`<div class="loading"><div class="spin"></div><span>スキャン中... ${done}/${total}銘柄</span></div>`;};
   updProg();
   const results=[];
   for(let i=0;i<SCREEN_CODES.length;i+=15){
@@ -831,7 +834,7 @@ async function doScreen(){
     }));
   }
   results.sort((a,b)=>(b.ws+b.ms)-(a.ws+a.ms));
-  if(!results.length){el.innerHTML='<div class="empty"><div class="empty-ico">🔍</div><p>条件に合う銘柄なし</p></div>';return;}
+  if(!results.length){el.innerHTML='<div class="empty"><div class="empty-ico">🔍</div><p>条件に合ぁ銘柄なし</p></div>';return;}
   el.innerHTML=results.map(r=>`<div class="sc-item" onclick="jumpAnalyze('${r.code}')">
     <div class="sc-code">${r.code}</div>
     <div class="sc-name">${r.name}</div>
